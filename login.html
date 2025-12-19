@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a148c">
+    
+    <!-- Google AdSense Kodu -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7610338885240453"
+     crossorigin="anonymous"></script>
+    
+    <title>Bilgoo - Kullanıcı Girişi</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Ekstra ortalama için CSS */
+        .user-preferences-container {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1000 !important;
+            padding: 20px !important;
+        }
+        
+        .user-preferences-container.hidden {
+            display: none !important;
+        }
+        
+        .user-preferences-container .auth-box {
+            margin: 0 auto !important;
+            max-width: 500px !important;
+            width: 100% !important;
+        }
+        
+        /* Butonlar arasındaki boşluğu azalt */
+        .auth-options {
+            margin-top: 10px;
+        }
+        
+        .auth-options .form-group {
+            margin-bottom: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-bg-particles"></div>
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="teknova-logo">
+                    <div class="logo-text gradient-text">Teknova</div>
+                    <div class="logo-subtitle">
+                        <span>Game Labs</span>
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <svg width="500" height="120" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="circuit-board">
+                        <defs>
+                            <linearGradient id="circuit-gradient" x1="0" y1="0" x2="500" y2="0" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#3a8dde"/>
+                                <stop offset="0.5" stop-color="#7b1fa2"/>
+                                <stop offset="1" stop-color="#00eaff"/>
+                            </linearGradient>
+                            <radialGradient id="circuit-gradient-node" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
+                                <stop offset="0%" stop-color="#00eaff"/>
+                                <stop offset="100%" stop-color="#7b1fa2"/>
+                            </radialGradient>
+                        </defs>
+                        <!-- Devre çizgileri -->
+                        <path d="M60 70 L100 70 L120 50 L180 50 L200 70 L250 70 L270 50 L330 50 L350 70 L400 70" class="circuit-line" />
+                        <path d="M80 80 L130 80 L150 60 L220 60 L240 80 L300 80 L320 60 L380 60 L400 80" class="circuit-line" />
+                        <path d="M40 90 L70 90 L90 70 L140 70 L160 90 L200 90 L220 70 L280 70 L300 90 L350 90 L370 70 L420 70" class="circuit-line" />
+                        <!-- Devre noktaları -->
+                        <circle cx="60" cy="70" r="3" class="circuit-node" />
+                        <circle cx="100" cy="70" r="3" class="circuit-node" />
+                        <circle cx="120" cy="50" r="3" class="circuit-node" />
+                        <circle cx="180" cy="50" r="3" class="circuit-node" />
+                        <circle cx="200" cy="70" r="3" class="circuit-node" />
+                        <circle cx="250" cy="70" r="3" class="circuit-node" />
+                        <circle cx="270" cy="50" r="3" class="circuit-node" />
+                        <circle cx="330" cy="50" r="3" class="circuit-node" />
+                        <circle cx="350" cy="70" r="3" class="circuit-node" />
+                        <circle cx="400" cy="70" r="3" class="circuit-node" />
+                        <circle cx="80" cy="80" r="3" class="circuit-node" />
+                        <circle cx="130" cy="80" r="3" class="circuit-node" />
+                        <circle cx="150" cy="60" r="3" class="circuit-node" />
+                        <circle cx="220" cy="60" r="3" class="circuit-node" />
+                        <circle cx="240" cy="80" r="3" class="circuit-node" />
+                        <circle cx="300" cy="80" r="3" class="circuit-node" />
+                        <circle cx="320" cy="60" r="3" class="circuit-node" />
+                        <circle cx="380" cy="60" r="3" class="circuit-node" />
+                        <circle cx="400" cy="80" r="3" class="circuit-node" />
+                        <circle cx="40" cy="90" r="3" class="circuit-node" />
+                        <circle cx="70" cy="90" r="3" class="circuit-node" />
+                        <circle cx="90" cy="70" r="3" class="circuit-node" />
+                        <circle cx="140" cy="70" r="3" class="circuit-node" />
+                        <circle cx="160" cy="90" r="3" class="circuit-node" />
+                        <circle cx="200" cy="90" r="3" class="circuit-node" />
+                        <circle cx="220" cy="70" r="3" class="circuit-node" />
+                        <circle cx="280" cy="70" r="3" class="circuit-node" />
+                        <circle cx="300" cy="90" r="3" class="circuit-node" />
+                        <circle cx="350" cy="90" r="3" class="circuit-node" />
+                        <circle cx="370" cy="70" r="3" class="circuit-node" />
+                        <circle cx="420" cy="70" r="3" class="circuit-node" />
+                    </svg>
+                </div>
+            </div>
+            <div class="splash-loader modern-loader">
+                <div class="splash-loader-bar"></div>
+                <div class="loader-percentage glass">%0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Tercihleri Ekranı -->
+    <div class="container user-preferences-container" style="display: none;">
+        <div class="auth-box" id="preferences-box">
+            <div class="main-logo">
+                <svg width="300" height="84" viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 10px auto; display: block;">
+                    <defs>
+                        <!-- Gradientler her harf için -->
+                        <linearGradient id="grad-b" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a73e8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-i" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d93025;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-l" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fbbc04;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f9ab00;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-g" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a73e8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-o1" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#34a853;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#137333;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-o2" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d93025;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- B harfi -->
+                    <text x="45" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-b)">B</text>
+                    <!-- i harfi -->
+                    <text x="135" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-i)">i</text>
+                    <!-- l harfi -->
+                    <text x="175" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-l)">l</text>
+                    <!-- g harfi -->
+                    <text x="215" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-g)">g</text>
+                    <!-- o harfi -->
+                    <text x="285" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-o1)">o</text>
+                    <!-- o harfi -->
+                    <text x="360" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-o2)">o</text>
+                </svg>
+            </div>
+            <h2>Tercihlerinizi Ayarlayın</h2>
+            
+            <div class="preferences-description">
+                Oyun deneyiminizi kişiselleştirmek için lütfen tercih ettiğiniz dili seçin. Bu tercih, sizin için uygun dilde soruların hazırlanmasını sağlayacaktır.
+            </div>
+            
+            <form id="user-preferences-form">
+                <div class="form-group language-buttons">
+                    <label class="language-label"><i class="fas fa-language"></i> Tercih ettiğiniz dil</label>
+                    <div class="language-options">
+                        <button type="button" class="language-btn" data-lang="tr" id="lang-tr">Türkçe</button>
+                        <button type="button" class="language-btn" data-lang="en" id="lang-en">English</button>
+                        <button type="button" class="language-btn" data-lang="de" id="lang-de">Deutsch</button>
+                    </div>
+                    <input type="hidden" id="user-language" value="tr">
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-primary" id="save-preferences">Devam Et</button>
+                </div>
+            </form>
+            
+            <div class="preferences-note">
+                <i class="fas fa-info-circle"></i> Bu ayarları daha sonra oyun içerisindeki ayarlar menüsünden değiştirebilirsiniz.
+            </div>
+        </div>
+    </div>
+
+    <div class="container login-container" style="visibility: hidden;">
+        <div class="auth-box" id="login-box">
+            <div class="main-logo">
+                <svg width="300" height="84" viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 10px auto; display: block;">
+                    <defs>
+                        <!-- Gradientler her harf için -->
+                        <linearGradient id="grad-b-login" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a73e8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-i-login" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d93025;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-l-login" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fbbc04;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f9ab00;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-g-login" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a73e8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-o1-login" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#34a853;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#137333;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-o2-login" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d93025;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- B harfi -->
+                    <text x="45" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-b-login)">B</text>
+                    <!-- i harfi -->
+                    <text x="135" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-i-login)">i</text>
+                    <!-- l harfi -->
+                    <text x="175" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-l-login)">l</text>
+                    <!-- g harfi -->
+                    <text x="215" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-g-login)">g</text>
+                    <!-- o harfi -->
+                    <text x="285" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-o1-login)">o</text>
+                    <!-- o harfi -->
+                    <text x="360" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-o2-login)">o</text>
+                </svg>
+            </div>
+            <h2>Giriş Yap</h2>
+            
+            <div id="login-error" class="error-message"></div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email"><i class="fas fa-envelope"></i> E-posta</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password"><i class="fas fa-lock"></i> Şifre</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-primary">Giriş Yap</button>
+                </div>
+            </form>
+            
+            <div class="auth-options">
+                <div class="form-group">
+                    <button id="show-register" class="btn-primary" data-i18n="registerButton">Kayıt Ol</button>
+                </div>
+                <div class="form-group">
+                    <button id="anonymous-login" class="btn-primary" data-i18n="guestLogin">Misafir olarak devam et</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="auth-box" id="register-box" style="display: none;">
+            <div class="main-logo">
+                <svg width="300" height="84" viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 10px auto; display: block;">
+                    <defs>
+                        <!-- Gradientler her harf için -->
+                        <linearGradient id="grad-b-register" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a73e8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-i-register" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d93025;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-l-register" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fbbc04;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f9ab00;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-g-register" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a73e8;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-o1-register" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#34a853;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#137333;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-o2-register" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d93025;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- B harfi -->
+                    <text x="45" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-b-register)">B</text>
+                    <!-- i harfi -->
+                    <text x="135" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-i-register)">i</text>
+                    <!-- l harfi -->
+                    <text x="175" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-l-register)">l</text>
+                    <!-- g harfi -->
+                    <text x="215" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-g-register)">g</text>
+                    <!-- o harfi -->
+                    <text x="285" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-o1-register)">o</text>
+                    <!-- o harfi -->
+                    <text x="360" y="95" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="url(#grad-o2-register)">o</text>
+                </svg>
+            </div>
+            <h2>Kayıt Ol</h2>
+            
+            <div id="register-error" class="error-message"></div>
+            
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-username"><i class="fas fa-user"></i> Kullanıcı Adı</label>
+                    <input type="text" id="register-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email"><i class="fas fa-envelope"></i> E-posta</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password"><i class="fas fa-lock"></i> Şifre</label>
+                    <input type="password" id="register-password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="register-password-confirm"><i class="fas fa-lock"></i> Şifre Tekrar</label>
+                    <input type="password" id="register-password-confirm" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-primary">Kayıt Ol</button>
+                </div>
+            </form>
+            
+            <div class="auth-options">
+                <p>Zaten hesabınız var mı? <a href="#" id="show-login">Giriş Yap</a></p>
+            </div>
+        </div>
+        
+        <!-- Footer Links -->
+        <div class="footer-links" style="
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        ">
+            <a href="privacy-policy.html" style="
+                color: rgba(255, 255, 255, 0.7);
+                text-decoration: none;
+                margin: 0 15px;
+                font-size: 0.9rem;
+                transition: color 0.3s ease;
+            " onmouseover="this.style.color='rgba(255, 255, 255, 1)'" 
+               onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">
+                Gizlilik Politikası
+            </a>
+                            <a href="privacy/privacy-settings.html" style="
+                color: rgba(255, 255, 255, 0.7);
+                text-decoration: none;
+                margin: 0 15px;
+                font-size: 0.9rem;
+                transition: color 0.3s ease;
+            " onmouseover="this.style.color='rgba(255, 255, 255, 1)'" 
+               onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">
+                Gizlilik Ayarları
+            </a>
+            <a href="contact.html" style="
+                color: rgba(255, 255, 255, 0.7);
+                text-decoration: none;
+                margin: 0 15px;
+                font-size: 0.9rem;
+                transition: color 0.3s ease;
+            " onmouseover="this.style.color='rgba(255, 255, 255, 1)'" 
+               onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'">
+                İletişim
+            </a>
+        </div>
+    </div>
+    
+    <!-- Firebase göstergesi -->
+    <div id="firebase-status" style="position: fixed; bottom: 10px; right: 10px; padding: 5px 10px; background-color: #f8d7da; color: #721c24; border-radius: 3px; font-size: 12px; display: none;">
+        Firebase yükleniyor...
+    </div>
+    
+    <!-- Firebase SDK'ları -->
+    <script>
+        // Firebase durumunu göster
+        document.getElementById('firebase-status').style.display = 'block';
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="./firebase-config.js"></script>
+    <script src="./languages.js"></script>
+    <script src="./auth.js"></script>
+    <script>
+        // Firebase durumunu kontrol et
+        window.addEventListener('load', function() {
+            try {
+                if (typeof firebase !== 'undefined' && firebase.app) {
+                    document.getElementById('firebase-status').textContent = 'Firebase hazır';
+                    document.getElementById('firebase-status').style.backgroundColor = '#d4edda';
+                    document.getElementById('firebase-status').style.color = '#155724';
+                    
+                    // 3 saniye sonra göstergeyi gizle
+                    setTimeout(function() {
+                        document.getElementById('firebase-status').style.display = 'none';
+                    }, 3000);
+                } else {
+                    document.getElementById('firebase-status').textContent = 'Firebase yüklenemedi!';
+                }
+            } catch (error) {
+                document.getElementById('firebase-status').textContent = 'Firebase hatası: ' + error.message;
+            }
+        });
+
+        // Splash screen işlemleri
+        document.addEventListener('DOMContentLoaded', function() {
+            const splashScreen = document.getElementById('splash-screen');
+            const preferencesContainer = document.querySelector('.user-preferences-container');
+            const loginContainer = document.querySelector('.login-container');
+            const preferencesForm = document.getElementById('user-preferences-form');
+            
+            // Splash screen'ler için akış kontrolü
+            function initSplashScreens() {
+                // Splash screen animasyonları için gerekli CSS sınıflarını uygula
+                if (splashScreen) {
+                    // İlk ekran logosu için animasyonları başlat
+                    createSplashParticles();
+                    animateCircuitNodes();
+                    updateLoaderPercentage();
+                }
+
+                // İlk splash ekranı 10 saniye sonra kapatıp doğrudan tercihler ekranına geç
+                setTimeout(function() {
+                    splashScreen.classList.add('fade-out');
+                    setTimeout(function() {
+                        splashScreen.style.display = 'none';
+                                preferencesContainer.style.display = 'block';
+                            }, 500); // Geçiş animasyonu için süre
+                }, 10000); // İlk splash screen gösterme süresi - 10 saniye
+            }
+            
+            // Splash screen akışını başlat
+            initSplashScreens();
+            
+            // Gerekli splash screen fonksiyonlarını tanımla
+            function createSplashParticles() {
+                const container = document.querySelector('.splash-bg-particles');
+                if (!container) return;
+                const colors = [
+                    'rgba(58,141,222,0.1)',
+                    'rgba(123,31,162,0.1)',
+                    'rgba(0,234,255,0.1)',
+                    'rgba(255,255,255,0.1)'
+                ];
+                const count = 18;
+                container.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    const size = Math.random() * 60 + 40;
+                    p.style.width = `${size}px`;
+                    p.style.height = `${size}px`;
+                    p.style.left = `${Math.random() * 95}%`;
+                    p.style.top = `${Math.random() * 90}%`;
+                    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    p.style.animationDelay = `${Math.random() * 8}s`;
+                    p.style.animationDuration = `${10 + Math.random() * 6}s`;
+                    container.appendChild(p);
+                }
+            }
+
+            function animateCircuitNodes() {
+                const nodes = document.querySelectorAll('.circuit-node');
+                nodes.forEach((node, index) => {
+                    node.style.setProperty('--i', index);
+                });
+            }
+
+            function updateLoaderPercentage() {
+                const bar = document.querySelector('.splash-loader-bar');
+                const percent = document.querySelector('.loader-percentage');
+                let progress = 0;
+                const duration = 9500; // ms - 10 saniyeye uygun olarak ayarlandı
+                const interval = 20;
+                const steps = duration / interval;
+                const increment = 100 / steps;
+                
+                // CSS animasyonunu devre dışı bırak
+                if (bar) {
+                    bar.style.animation = 'none';
+                }
+                
+                const timer = setInterval(() => {
+                    progress += increment;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(timer);
+                    }
+                    percent.textContent = `%${Math.round(progress)}`;
+                    // Çubuğun maksimum genişliği 288px, yüzde oranında ayarla
+                    bar.style.width = `${(progress / 100) * 288}px`;
+                }, interval);
+            }
+            
+            // Kullanıcı tercihlerini kaydetme fonksiyonu
+            function saveUserPreferences() {
+                console.log('saveUserPreferences fonksiyonu başladı');
+                const language = document.getElementById('user-language').value;
+                
+                // Tercihleri localStorage'a kaydet
+                localStorage.setItem('user_language', language);
+                // Varsayılan yaş grubu olarak "adult" kullanılacak
+                localStorage.setItem('user_age_group', 'adult');
+                
+                // Dil tercihini HTML etiketlerine hemen uygula
+                document.documentElement.setAttribute('lang', language);
+                document.documentElement.setAttribute('data-language', language);
+                
+                // Sayfadaki metinleri hemen değiştir
+                applyLanguageToUI(language);
+                
+                console.log(`Tercihler kaydedildi: Dil=${language}, Yaş Grubu=adult`);
+                
+                // Tercihler ekranını kapat ve login ekranını göster
+                console.log('Ekran geçişi yapılıyor...');
+                const currentPreferencesContainer = document.querySelector('.user-preferences-container');
+                const currentLoginContainer = document.querySelector('.login-container');
+                
+                console.log('Preferences container:', currentPreferencesContainer);
+                console.log('Login container:', currentLoginContainer);
+                
+                if (currentPreferencesContainer) {
+                    console.log('Preferences container gizleniyor...');
+                    currentPreferencesContainer.classList.add('hidden');
+                } else {
+                    console.error('Preferences container bulunamadı!');
+                }
+                
+                if (currentLoginContainer) {
+                    console.log('Login container gösteriliyor...');
+                    currentLoginContainer.style.visibility = 'visible';
+                    currentLoginContainer.style.display = 'block';
+                    currentLoginContainer.classList.add('fade-in');
+                } else {
+                    console.error('Login container bulunamadı!');
+                }
+                
+                console.log('Ekran geçişi tamamlandı');
+            }
+            
+            // Arayüz dilini anında değiştir
+            function applyLanguageToUI(language) {
+                // Dil çevirilerini tanımla
+                const translations = {
+                    'tr': {
+                        'pageTitle': 'Bilgoo - Kullanıcı Girişi',
+                        'gameTitle': 'Bilgoo',
+                        'preferences': 'Tercihlerinizi Ayarlayın',
+                        'preferencesDesc': 'Oyun deneyiminizi kişiselleştirmek için lütfen tercih ettiğiniz dili seçin. Bu tercih, sizin için uygun dilde soruların hazırlanmasını sağlayacaktır.',
+                        'langLabel': 'Tercih ettiğiniz dil',
+                        'difficultyLabel': 'Zorluk Seviyesi',
+                        'continueBtn': 'Devam Et',
+                        'prefNote': 'Bu ayarları daha sonra oyun içerisindeki ayarlar menüsünden değiştirebilirsiniz.',
+                        'loginTitle': 'Giriş Yap',
+                        'emailLabel': 'E-posta',
+                        'passwordLabel': 'Şifre',
+                        'loginBtn': 'Giriş Yap',
+                        'noAccount': 'Hesabınız yok mu?',
+                        'registerLink': 'Kayıt Ol',
+                        'guestLogin': 'Misafir olarak devam et',
+                        'registerTitle': 'Kayıt Ol',
+                        'usernameLabel': 'Kullanıcı Adı',
+                        'confirmPassword': 'Şifre Tekrar',
+                        'registerBtn': 'Kayıt Ol',
+                        'haveAccount': 'Zaten hesabınız var mı?',
+                        'child': 'Çocuk (7-12)',
+                        'teen': 'Genç (13-17)',
+                        'adult': 'Yetişkin (18+)'
+                    },
+                    'en': {
+                        'pageTitle': 'Quiz Game - User Login',
+                        'gameTitle': 'Quiz Game',
+                        'preferences': 'Set Your Preferences',
+                        'preferencesDesc': 'Please select your preferred language to customize your game experience. This will ensure that questions are prepared in the appropriate language for you.',
+                        'langLabel': 'Preferred language',
+                        'difficultyLabel': 'Difficulty Level',
+                        'continueBtn': 'Continue',
+                        'prefNote': 'You can change these settings later from the settings menu in the game.',
+                        'loginTitle': 'Login',
+                        'emailLabel': 'Email',
+                        'passwordLabel': 'Password',
+                        'loginBtn': 'Login',
+                        'noAccount': 'Don\'t have an account?',
+                        'registerLink': 'Register',
+                        'guestLogin': 'Continue as guest',
+                        'registerTitle': 'Register',
+                        'usernameLabel': 'Username',
+                        'confirmPassword': 'Confirm Password',
+                        'registerBtn': 'Register',
+                        'haveAccount': 'Already have an account?',
+                        'child': 'Child (7-12)',
+                        'teen': 'Teen (13-17)',
+                        'adult': 'Adult (18+)'
+                    },
+                    'de': {
+                        'pageTitle': 'Quiz-Spiel - Benutzeranmeldung',
+                        'gameTitle': 'Quiz-Spiel',
+                        'preferences': 'Stellen Sie Ihre Präferenzen ein',
+                        'preferencesDesc': 'Bitte wählen Sie Ihre bevorzugte Sprache, um Ihr Spielerlebnis anzupassen. Diese Einstellung stellt sicher, dass Fragen in der für Sie geeigneten Sprache vorbereitet werden.',
+                        'langLabel': 'Bevorzugte Sprache',
+                        'difficultyLabel': 'Schwierigkeitsgrad',
+                        'continueBtn': 'Fortfahren',
+                        'prefNote': 'Sie können diese Einstellungen später im Einstellungsmenü des Spiels ändern.',
+                        'loginTitle': 'Anmelden',
+                        'emailLabel': 'E-Mail',
+                        'passwordLabel': 'Passwort',
+                        'loginBtn': 'Anmelden',
+                        'noAccount': 'Haben Sie kein Konto?',
+                        'registerLink': 'Registrieren',
+                        'guestLogin': 'Als Gast fortfahren',
+                        'registerTitle': 'Registrieren',
+                        'usernameLabel': 'Benutzername',
+                        'confirmPassword': 'Passwort bestätigen',
+                        'registerBtn': 'Registrieren',
+                        'haveAccount': 'Haben Sie bereits ein Konto?',
+                        'child': 'Kind (7-12)',
+                        'teen': 'Jugendlicher (13-17)',
+                        'adult': 'Erwachsener (18+)'
+                    }
+                };
+                
+                // Seçilen dile göre metinleri güncelle
+                const langData = translations[language] || translations['tr'];
+                
+                // Sayfa başlığını güncelle
+                document.title = langData.pageTitle;
+                
+                // Tercihler ekranı - h1 logosu artık SVG olduğu için bu satırı kaldırıyoruz
+                // document.querySelector('h1').textContent = langData.gameTitle;
+                const preferencesTitle = document.querySelector('#preferences-box h2');
+                if (preferencesTitle) preferencesTitle.textContent = langData.preferences;
+                
+                const preferencesDesc = document.querySelector('.preferences-description');
+                if (preferencesDesc) preferencesDesc.textContent = langData.preferencesDesc;
+                
+                // Form etiketleri
+                document.querySelector('.language-label').innerHTML = `<i class="fas fa-language"></i> ${langData.langLabel}`;
+                
+                // Buton ve diğer metinler
+                document.getElementById('save-preferences').textContent = langData.continueBtn;
+                document.querySelector('.preferences-note').innerHTML = `<i class="fas fa-info-circle"></i> ${langData.prefNote}`;
+                
+                // Login ve kayıt formları (eğer görünürse)
+                const loginTitle = document.querySelector('#login-box h2');
+                if (loginTitle) loginTitle.textContent = langData.loginTitle;
+                
+                const registerTitle = document.querySelector('#register-box h2');
+                if (registerTitle) registerTitle.textContent = langData.registerTitle;
+                
+                // Login formu elementleri
+                const loginEmailLabel = document.querySelector('label[for="login-email"]');
+                if (loginEmailLabel) loginEmailLabel.innerHTML = `<i class="fas fa-envelope"></i> ${langData.emailLabel}`;
+                
+                const loginPasswordLabel = document.querySelector('label[for="login-password"]');
+                if (loginPasswordLabel) loginPasswordLabel.innerHTML = `<i class="fas fa-lock"></i> ${langData.passwordLabel}`;
+                
+                const loginButton = document.querySelector('#login-form button');
+                if (loginButton) loginButton.textContent = langData.loginBtn;
+                
+                // Login bağlantıları
+                const noAccountText = document.querySelector('#login-box .auth-options p:first-child');
+                if (noAccountText) {
+                    const registerLink = noAccountText.querySelector('a');
+                    noAccountText.innerHTML = `${langData.noAccount} <a href="#" id="show-register">${langData.registerLink}</a>`;
+                    
+                    // Event listener'ı tekrar ekle
+                    document.getElementById('show-register').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById('login-box').style.display = 'none';
+                        document.getElementById('register-box').style.display = 'block';
+                    });
+                }
+                
+                const guestLoginLink = document.querySelector('#anonymous-login');
+                if (guestLoginLink) guestLoginLink.textContent = langData.guestLogin;
+                
+                // Kayıt formu elementleri
+                const usernameLabel = document.querySelector('label[for="register-username"]');
+                if (usernameLabel) usernameLabel.innerHTML = `<i class="fas fa-user"></i> ${langData.usernameLabel}`;
+                
+                const registerEmailLabel = document.querySelector('label[for="register-email"]');
+                if (registerEmailLabel) registerEmailLabel.innerHTML = `<i class="fas fa-envelope"></i> ${langData.emailLabel}`;
+                
+                const registerPasswordLabel = document.querySelector('label[for="register-password"]');
+                if (registerPasswordLabel) registerPasswordLabel.innerHTML = `<i class="fas fa-lock"></i> ${langData.passwordLabel}`;
+                
+                const confirmPasswordLabel = document.querySelector('label[for="register-password-confirm"]');
+                if (confirmPasswordLabel) confirmPasswordLabel.innerHTML = `<i class="fas fa-lock"></i> ${langData.confirmPassword}`;
+                
+                const registerButton = document.querySelector('#register-form button');
+                if (registerButton) registerButton.textContent = langData.registerBtn;
+                
+                // Kayıt bağlantıları
+                const haveAccountText = document.querySelector('#register-box .auth-options p');
+                if (haveAccountText) {
+                    const loginLink = haveAccountText.querySelector('a');
+                    haveAccountText.innerHTML = `${langData.haveAccount} <a href="#" id="show-login">${langData.loginTitle}</a>`;
+                    
+                    // Event listener'ı tekrar ekle
+                    document.getElementById('show-login').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById('register-box').style.display = 'none';
+                        document.getElementById('login-box').style.display = 'block';
+                    });
+                }
+                
+                // languages.js dosyasından çevirileri kullanarak data-i18n özelliği olan elementleri çevir
+                if (window.languages) {
+                    const currentLangData = window.languages[language] || window.languages['tr'];
+                    const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+                    
+                    elementsToTranslate.forEach(element => {
+                        const translationKey = element.getAttribute('data-i18n');
+                        if (currentLangData[translationKey]) {
+                            element.textContent = currentLangData[translationKey];
+                        }
+                    });
+                }
+            }
+            
+            // Dil butonları için event listener'ları ekle
+            const langButtons = document.querySelectorAll('.language-btn');
+            const userLanguageInput = document.getElementById('user-language');
+            
+            // Varsayılan olarak Türkçe seçili olsun
+            document.getElementById('lang-tr').classList.add('selected');
+            
+            // Dil butonlarına tıklama olayı ekle
+            langButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Tüm butonlardan selected sınıfını kaldır
+                    langButtons.forEach(btn => btn.classList.remove('selected'));
+                    // Tıklanan butona selected sınıfını ekle
+                    this.classList.add('selected');
+                    // Gizli input değerini güncelle
+                    userLanguageInput.value = this.getAttribute('data-lang');
+                    
+                    // Dil değişimini uygula
+                    const selectedLanguage = userLanguageInput.value;
+                document.documentElement.setAttribute('lang', selectedLanguage);
+                document.documentElement.setAttribute('data-language', selectedLanguage);
+                applyLanguageToUI(selectedLanguage);
+                });
+            });
+            
+            // Yaş seçimi kaldırıldığı için bu event listener'a gerek kalmadı
+            
+            // Preferences form submit işlemi
+            if (preferencesForm) {
+                console.log('Preferences form bulundu, event listener ekleniyor...');
+                preferencesForm.addEventListener('submit', function(e) {
+                    console.log('Form submit event tetiklendi!');
+                    e.preventDefault();
+                    console.log('Tercihler kaydediliyor...');
+                    saveUserPreferences();
+                });
+            } else {
+                console.error('Preferences form bulunamadı!');
+            }
+            
+            // Devam Et butonuna da direkt click event ekleyelim
+            const saveBtn = document.getElementById('save-preferences');
+            if (saveBtn) {
+                console.log('Devam Et butonu bulundu, click event ekleniyor...');
+                saveBtn.addEventListener('click', function(e) {
+                    console.log('Devam Et butonuna tıklandı!');
+                    // Form submit olup olmadığını kontrol et
+                    if (e.target.form) {
+                        console.log('Buton bir formun içinde, form submit tetiklenecek');
+                    } else {
+                        console.log('Buton form dışında, manuel kaydetme...');
+                        e.preventDefault();
+                        saveUserPreferences();
+                    }
+                });
+                                } else {
+                console.error('Devam Et butonu bulunamadı!');
+            }
+        });
+    </script>
+</body>
+</html> 

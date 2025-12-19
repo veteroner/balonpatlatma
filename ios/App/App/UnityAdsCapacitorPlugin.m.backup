@@ -1,0 +1,8 @@
+#import <Capacitor/Capacitor.h>
+
+CAP_PLUGIN(UnityAdsCapacitorPlugin, "UnityAdsPlugin",
+    CAP_PLUGIN_METHOD(loadAd, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(showAd, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(showBanner, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(hideBanner, CAPPluginReturnPromise);
+)

@@ -1,0 +1,7 @@
+# Local Netlify folder
+.netlify
+
+# Duplicate web build copies not part of source
+www/www/
+www/android/
+www/node_modules/

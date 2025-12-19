@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500">
+  <defs>
+    <!-- Arkaplan Gradyanı -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0d21"/>
+      <stop offset="50%" stop-color="#1e61ff"/>
+      <stop offset="100%" stop-color="#4a90e2"/>
+    </linearGradient>
+    
+    <!-- Balon Gradyanları -->
+    <linearGradient id="red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4081"/>
+      <stop offset="100%" stop-color="#ff1744"/>
+    </linearGradient>
+    
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#007bff"/>
+    </linearGradient>
+    
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#76ff03"/>
+      <stop offset="100%" stop-color="#00c851"/>
+    </linearGradient>
+    
+    <linearGradient id="yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd600"/>
+      <stop offset="100%" stop-color="#ff9800"/>
+    </linearGradient>
+    
+    <linearGradient id="purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e040fb"/>
+      <stop offset="100%" stop-color="#9c27b0"/>
+    </linearGradient>
+    
+    <!-- Parlaklık Efekti -->
+    <radialGradient id="spark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#00eaff" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Arkaplan -->
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  
+  <!-- Sol taraf - Balon kümeleri -->
+  <!-- Büyük balon grubu -->
+  <g transform="translate(150, 250)">
+    <!-- Ana kırmızı balon -->
+    <circle cx="0" cy="0" r="45" fill="url(#red)" stroke="#fff" stroke-width="4" opacity="0.95"/>
+    <circle cx="0" cy="0" r="30" fill="url(#spark)" opacity="0.7"/>
+    
+    <!-- Mavi balon -->
+    <circle cx="80" cy="-40" r="38" fill="url(#blue)" stroke="#fff" stroke-width="4" opacity="0.9"/>
+    <circle cx="80" cy="-40" r="25" fill="url(#spark)" opacity="0.6"/>
+    
+    <!-- Yeşil balon -->
+    <circle cx="-60" cy="60" r="42" fill="url(#green)" stroke="#fff" stroke-width="4" opacity="0.9"/>
+    <circle cx="-60" cy="60" r="28" fill="url(#spark)" opacity="0.6"/>
+    
+    <!-- Sarı balon -->
+    <circle cx="60" cy="70" r="40" fill="url(#yellow)" stroke="#fff" stroke-width="4" opacity="0.95"/>
+    <circle cx="60" cy="70" r="26" fill="url(#spark)" opacity="0.7"/>
+    
+    <!-- Mor balon -->
+    <circle cx="-80" cy="-30" r="35" fill="url(#purple)" stroke="#fff" stroke-width="4" opacity="0.9"/>
+    <circle cx="-80" cy="-30" r="22" fill="url(#spark)" opacity="0.6"/>
+  </g>
+  
+  <!-- Orta kısım - Oyun adı -->
+  <g transform="translate(512, 250)">
+    <!-- Başlık metni -->
+    <text x="0" y="-60" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" stroke="#1e61ff" stroke-width="2">
+      BALON
+    </text>
+    <text x="0" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" stroke="#1e61ff" stroke-width="2">
+      PATLATMA
+    </text>
+    <text x="0" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="normal" fill="#00eaff">
+      OYUNU
+    </text>
+  </g>
+  
+  <!-- Sağ taraf - Daha küçük balonlar -->
+  <g transform="translate(800, 180)">
+    <circle cx="0" cy="0" r="25" fill="url(#blue)" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <circle cx="0" cy="0" r="16" fill="url(#spark)" opacity="0.5"/>
+    
+    <circle cx="60" cy="40" r="22" fill="url(#red)" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <circle cx="60" cy="40" r="14" fill="url(#spark)" opacity="0.5"/>
+    
+    <circle cx="-40" cy="80" r="28" fill="url(#green)" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <circle cx="-40" cy="80" r="18" fill="url(#spark)" opacity="0.5"/>
+    
+    <circle cx="40" cy="-30" r="20" fill="url(#yellow)" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <circle cx="40" cy="-30" r="12" fill="url(#spark)" opacity="0.5"/>
+    
+    <circle cx="80" cy="100" r="24" fill="url(#purple)" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <circle cx="80" cy="100" r="15" fill="url(#spark)" opacity="0.5"/>
+  </g>
+  
+  <!-- Işıltı efektleri -->
+  <g opacity="0.7">
+    <!-- Sol taraf ışıltılar -->
+    <path d="M50,80 L70,60" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <path d="M80,120 L100,100" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="60" cy="70" r="3" fill="#ffffff"/>
+    <circle cx="90" cy="110" r="3" fill="#ffffff"/>
+    
+    <!-- Orta ışıltılar -->
+    <path d="M450,150 L470,130" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <path d="M580,350 L600,330" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="460" cy="140" r="3" fill="#ffffff"/>
+    <circle cx="590" cy="340" r="3" fill="#ffffff"/>
+    
+    <!-- Sağ taraf ışıltılar -->
+    <path d="M900,100 L920,80" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <path d="M850,320 L870,300" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="910" cy="90" r="3" fill="#ffffff"/>
+    <circle cx="860" cy="310" r="3" fill="#ffffff"/>
+  </g>
+  
+  <!-- Pop efekti sembolleri -->
+  <g opacity="0.6">
+    <g transform="translate(350, 120)">
+      <circle cx="0" cy="0" r="15" fill="#ff4081" opacity="0.8"/>
+      <text x="0" y="5" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white">★</text>
+    </g>
+    
+    <g transform="translate(650, 380)">
+      <circle cx="0" cy="0" r="15" fill="#00e5ff" opacity="0.8"/>
+      <text x="0" y="5" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white">★</text>
+    </g>
+    
+    <g transform="translate(200, 400)">
+      <circle cx="0" cy="0" r="12" fill="#76ff03" opacity="0.8"/>
+      <text x="0" y="4" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">✦</text>
+    </g>
+  </g>
+</svg>

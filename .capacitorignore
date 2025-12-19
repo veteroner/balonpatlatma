@@ -1,0 +1,91 @@
+# Capacitor ignore file
+# Bu dosyalar web assets'e kopyalanmayacak
+
+# Build directories
+android/
+ios/
+node_modules/
+www/
+
+# Development files
+*.md
+*.bat
+*.sh
+build_*.bat
+deploy_*.bat
+test_*.bat
+start_server.bat
+fix_*.sh
+generate_*.js
+
+# Documentation
+README*.md
+ADMOB_*.md
+IOS_*.md
+PLAY_STORE_*.md
+PRODUCTION_*.md
+SYNC_REPORT_*.md
+VALIDATION_*.md
+BANNER_*.md
+CAPACITOR_*.md
+FINAL_*.md
+SPLASH_*.md
+GOOGLE_*.md
+*.code-workspace
+
+# Git
+.git/
+.gitignore
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large assets that should only be in main bundle
+feature_graphic_1024x500.jpg
+feature_graphic_1024x500.png
+android_app_icon.svg
+android_splash_screen.svg
+icon.svg
+feature_graphic.svg
+
+# Backup files
+*_backup.*
+*_new.*
+index_backup.html
+index_new.html
+
+# Test files
+*-test.html
+*-test.js
+test.html
+att-test.html
+banner-test.html
+splash-demo.html
+
+# Manual files
+manual-*.js
+
+# Debug files
+*-debug*.js
+quick-*.js
+
+# Release files
+app_clean.js
+
+# Sitemap and robots
+sitemap.xml
+
+# Security files  
+ads.txt

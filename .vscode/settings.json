@@ -1,0 +1,44 @@
+{
+    // Disable automatic Java project imports to prevent plugin conflicts
+    "java.import.gradle.enabled": false,
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "java.autobuild.enabled": false,
+    
+    // Hide problematic folders completely
+    "files.exclude": {
+        ".classpath": true,
+        ".project": true,
+        "node_modules": true,
+        "android/.classpath": true,
+        "android/.project": true,
+        // Exclude stray copies inside www
+        "www/www": true,
+        "www/android": true,
+        "www/node_modules": true
+    },
+
+    // Prevent search from scanning stray copies
+    "search.exclude": {
+        "www/www": true,
+        "www/android": true,
+        "www/node_modules": true
+    },
+
+    // Completely exclude all Java processing for node_modules
+    "java.project.import.exclusions": [
+        "**/node_modules/**",
+        "**/@capacitor/**",
+        "**/www/android/**",
+        "**/www/www/**"
+    ],
+
+    // Also stop file watching in these heavy folders
+    "files.watcherExclude": {
+        "**/www/node_modules/**": true,
+        "**/www/android/**": true,
+        "**/www/www/**": true
+    },
+
+    // Disable Java language server for the entire workspace
+    "java.enabled": false
+}

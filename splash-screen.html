@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PopGo - Balon Patlatma Oyunu</title>
+    <link rel="stylesheet" href="splash-screen.css">
+</head>
+<body>
+    <div class="splash-container">
+        <!-- Game Icon -->
+        <div class="icon-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+                <defs>
+                    <!-- Background Gradient -->
+                    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0a0d21"/>
+                        <stop offset="100%" stop-color="#1e61ff"/>
+                    </linearGradient>
+                    
+                    <!-- Balloon Gradients -->
+                    <linearGradient id="red" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ff4081"/>
+                        <stop offset="100%" stop-color="#ff1744"/>
+                    </linearGradient>
+                    
+                    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00e5ff"/>
+                        <stop offset="100%" stop-color="#007bff"/>
+                    </linearGradient>
+                    
+                    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#76ff03"/>
+                        <stop offset="100%" stop-color="#00c851"/>
+                    </linearGradient>
+                    
+                    <linearGradient id="yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ffd600"/>
+                        <stop offset="100%" stop-color="#ff9800"/>
+                    </linearGradient>
+                    
+                    <linearGradient id="purple" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#e91e63"/>
+                        <stop offset="100%" stop-color="#9c27b0"/>
+                    </linearGradient>
+                    
+                    <!-- Shine Effect -->
+                    <radialGradient id="spark" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                        <stop offset="100%" stop-color="#00eaff" stop-opacity="0.3"/>
+                    </radialGradient>
+                </defs>
+                
+                <!-- Background -->
+                <rect width="128" height="128" fill="url(#bg)" rx="24"/>
+                
+                <!-- Balloon Cluster -->
+                <!-- Red Balloon (Main) -->
+                <circle cx="45" cy="35" r="12" fill="url(#red)" stroke="#fff" stroke-width="1.5" opacity="0.95">
+                    <animate attributeName="r" values="12;14;12" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="45" cy="35" r="8" fill="url(#spark)" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Blue Balloon -->
+                <circle cx="75" cy="25" r="10" fill="url(#blue)" stroke="#fff" stroke-width="1.5" opacity="0.9">
+                    <animate attributeName="r" values="10;12;10" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="75" cy="25" r="6" fill="url(#spark)" opacity="0.5">
+                    <animate attributeName="opacity" values="0.5;0.9;0.5" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Green Balloon -->
+                <circle cx="25" cy="55" r="11" fill="url(#green)" stroke="#fff" stroke-width="1.5" opacity="0.9">
+                    <animate attributeName="r" values="11;13;11" dur="1.8s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="25" cy="55" r="7" fill="url(#spark)" opacity="0.5">
+                    <animate attributeName="opacity" values="0.5;0.8;0.5" dur="1.8s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Yellow Balloon (Center) -->
+                <circle cx="65" cy="55" r="13" fill="url(#yellow)" stroke="#fff" stroke-width="1.5" opacity="0.95">
+                    <animate attributeName="r" values="13;15;13" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="65" cy="55" r="9" fill="url(#spark)" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Purple Balloon -->
+                <circle cx="90" cy="70" r="9" fill="url(#purple)" stroke="#fff" stroke-width="1.5" opacity="0.85">
+                    <animate attributeName="r" values="9;11;9" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="90" cy="70" r="5" fill="url(#spark)" opacity="0.4">
+                    <animate attributeName="opacity" values="0.4;0.7;0.4" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Pop Effect -->
+                <g transform="translate(64,90)">
+                    <path d="M-8,-8 L8,8 M8,-8 L-8,8" stroke="#00eaff" stroke-width="3" stroke-linecap="round" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="1s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M-12,0 L12,0 M0,-12 L0,12" stroke="#00eaff" stroke-width="2" stroke-linecap="round" opacity="0.6">
+                        <animate attributeName="opacity" values="0.6;1;0.6" dur="1.2s" repeatCount="indefinite"/>
+                    </path>
+                    <circle cx="0" cy="0" r="4" fill="#00eaff" opacity="0.9">
+                        <animate attributeName="r" values="4;6;4" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                </g>
+                
+                <!-- Sparkles -->
+                <g opacity="0.7">
+                    <path d="M15,25 L20,20" stroke="#ffffff" stroke-width="2" stroke-linecap="round">
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M95,35 L100,30" stroke="#ffffff" stroke-width="2" stroke-linecap="round">
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="2.5s" repeatCount="indefinite"/>
+                    </path>
+                    <path d="M35,85 L40,90" stroke="#ffffff" stroke-width="2" stroke-linecap="round">
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="3.5s" repeatCount="indefinite"/>
+                    </path>
+                    <circle cx="18" cy="22" r="1.5" fill="#ffffff">
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="98" cy="32" r="1.5" fill="#ffffff">
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="2.8s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="38" cy="88" r="1.5" fill="#ffffff">
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="1.8s" repeatCount="indefinite"/>
+                    </circle>
+                </g>
+            </svg>
+        </div>
+        
+        <!-- Game Title -->
+        <h1 class="game-title">PopGo</h1>
+        <p class="game-subtitle">Balon Patlatma Oyunu</p>
+        
+        <!-- Loading Animation -->
+        <div class="loading-container">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+        
+        <!-- Loading Text -->
+        <p class="loading-text">Yükleniyor...</p>
+    </div>
+    
+    <script src="splash-screen.js"></script>
+</body>
+</html>

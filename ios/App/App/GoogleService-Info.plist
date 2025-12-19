@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyAF2hI8u3fYfi9Stfx33H9gXy5bq0BKePQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>609202148971</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.popgo.game</string>
+	<key>PROJECT_ID</key>
+	<string>popgo-1c34f</string>
+	<key>STORAGE_BUCKET</key>
+	<string>popgo-1c34f.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:609202148971:ios:27aace7d9d33ae1936832e</string>
+	<key>ADMOB_APP_ID</key>
+	<string>ca-app-pub-7610338885240453~1290039433</string>
+</dict>
+</plist>

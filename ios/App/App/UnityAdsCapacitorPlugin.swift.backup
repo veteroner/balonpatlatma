@@ -1,0 +1,278 @@
+import Foundation
+import Capacitor
+import UnityAds
+
+@objc(UnityAdsCapacitorPlugin)
+public class UnityAdsCapacitorPlugin: CAPPlugin, UnityAdsLoadDelegate, UnityAdsShowDelegate, UADSBannerViewDelegate {
+    
+    private var bannerView: UADSBannerView?
+    
+    // Track loaded ads by placement ID
+    private var loadedAds: Set<String> = []
+    
+    // Called when the plugin is loaded by Capacitor
+    public override func load() {
+        super.load()
+        print("✅ [Unity Ads] UnityAdsCapacitorPlugin loaded and registered with Capacitor")
+    }
+    
+    // MARK: - Load Interstitial/Rewarded
+    
+    @objc func loadAd(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Interstitial_iOS"
+        
+        print("🎮 [Unity Ads] Loading ad: \(placementId)")
+        UnityAds.load(placementId, loadDelegate: self)
+        
+        call.resolve(["success": true])
+    }
+    
+    // MARK: - Specific Load Methods (for npm package compatibility)
+    
+    @objc func loadInterstitial(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Interstitial_iOS"
+        
+        print("🎮 [Unity Ads] Loading interstitial: \(placementId)")
+        UnityAds.load(placementId, loadDelegate: self)
+        
+        call.resolve(["success": true])
+    }
+    
+    @objc func loadRewardedVideo(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Rewarded_iOS"
+        
+        print("🎮 [Unity Ads] Loading rewarded video: \(placementId)")
+        UnityAds.load(placementId, loadDelegate: self)
+        
+        call.resolve(["success": true])
+    }
+    
+    // MARK: - Show Interstitial/Rewarded
+    
+    @objc func showAd(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Interstitial_iOS"
+        
+        DispatchQueue.main.async {
+            guard let viewController = self.bridge?.viewController else {
+                print("❌ [Unity Ads] No view controller available")
+                call.reject("No view controller available")
+                return
+            }
+            
+            // Check if ad is loaded before attempting to show
+            if !self.loadedAds.contains(placementId) {
+                print("❌ [Unity Ads] Ad not loaded for placement: \(placementId)")
+                call.reject("Ad not loaded for \(placementId)")
+                return
+            }
+            
+            print("📺 [Unity Ads] Showing ad: \(placementId)")
+            
+            // Show the ad
+            UnityAds.show(viewController, placementId: placementId, showDelegate: self)
+            
+            // Mark as consumed - need to reload before next show
+            self.loadedAds.remove(placementId)
+            print("🔄 [Unity Ads] Ad consumed, marked for reload: \(placementId)")
+            
+            call.resolve(["success": true])
+        }
+    }
+    
+    // MARK: - Specific Show Methods (for npm package compatibility)
+    
+    @objc func showInterstitial(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Interstitial_iOS"
+        
+        DispatchQueue.main.async {
+            guard let viewController = self.bridge?.viewController else {
+                print("❌ [Unity Ads] No view controller available")
+                call.reject("No view controller available")
+                return
+            }
+            
+            // Check if ad is loaded before attempting to show
+            if !self.loadedAds.contains(placementId) {
+                print("❌ [Unity Ads] Interstitial not loaded for: \(placementId)")
+                call.reject("Interstitial not loaded")
+                return
+            }
+            
+            print("📺 [Unity Ads] Showing interstitial: \(placementId)")
+            
+            // Show the ad
+            UnityAds.show(viewController, placementId: placementId, showDelegate: self)
+            
+            // Mark as consumed - need to reload before next show
+            self.loadedAds.remove(placementId)
+            print("🔄 [Unity Ads] Interstitial consumed, marked for reload: \(placementId)")
+            
+            call.resolve(["success": true])
+        }
+    }
+    
+    @objc func showRewardedVideo(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Rewarded_iOS"
+        
+        DispatchQueue.main.async {
+            guard let viewController = self.bridge?.viewController else {
+                print("❌ [Unity Ads] No view controller available")
+                call.reject("No view controller available")
+                return
+            }
+            
+            // Check if ad is loaded before attempting to show
+            if !self.loadedAds.contains(placementId) {
+                print("❌ [Unity Ads] Rewarded video not loaded for: \(placementId)")
+                call.reject("Rewarded video not loaded")
+                return
+            }
+            
+            print("📺 [Unity Ads] Showing rewarded video: \(placementId)")
+            
+            // Show the ad
+            UnityAds.show(viewController, placementId: placementId, showDelegate: self)
+            
+            // Mark as consumed - need to reload before next show
+            self.loadedAds.remove(placementId)
+            print("🔄 [Unity Ads] Rewarded video consumed, marked for reload: \(placementId)")
+            
+            call.resolve(["success": true])
+        }
+    }
+    
+    // MARK: - Banner Methods
+    
+    @objc func showBanner(_ call: CAPPluginCall) {
+        let placementId = call.getString("placementId") ?? "Banner_iOS"
+        let position = call.getString("position") ?? "BOTTOM"
+        
+        DispatchQueue.main.async {
+            // Remove existing banner
+            self.bannerView?.removeFromSuperview()
+            self.bannerView = nil
+            
+            // Create banner (320x50)
+            self.bannerView = UADSBannerView(placementId: placementId, size: CGSize(width: 320, height: 50))
+            self.bannerView?.delegate = self
+            
+            guard let banner = self.bannerView,
+                  let webView = self.bridge?.webView else {
+                call.reject("Failed to create banner")
+                return
+            }
+            
+            // Add to view hierarchy
+            banner.translatesAutoresizingMaskIntoConstraints = false
+            webView.addSubview(banner)
+            
+            // Position banner
+            if position == "TOP" {
+                NSLayoutConstraint.activate([
+                    banner.topAnchor.constraint(equalTo: webView.safeAreaLayoutGuide.topAnchor),
+                    banner.centerXAnchor.constraint(equalTo: webView.centerXAnchor),
+                    banner.widthAnchor.constraint(equalToConstant: 320),
+                    banner.heightAnchor.constraint(equalToConstant: 50)
+                ])
+            } else {
+                NSLayoutConstraint.activate([
+                    banner.bottomAnchor.constraint(equalTo: webView.safeAreaLayoutGuide.bottomAnchor),
+                    banner.centerXAnchor.constraint(equalTo: webView.centerXAnchor),
+                    banner.widthAnchor.constraint(equalToConstant: 320),
+                    banner.heightAnchor.constraint(equalToConstant: 50)
+                ])
+            }
+            
+            // Load banner ad
+            banner.load()
+            print("🎯 [Unity Ads] Banner loading: \(placementId)")
+            call.resolve(["success": true])
+        }
+    }
+    
+    @objc func hideBanner(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.bannerView?.removeFromSuperview()
+            self.bannerView = nil
+            print("🚫 [Unity Ads] Banner hidden")
+            call.resolve(["success": true])
+        }
+    }
+    
+    // MARK: - UnityAdsLoadDelegate
+    
+    public func unityAdsAdLoaded(_ placementId: String) {
+        print("✅ [Unity Ads] Ad loaded: \(placementId)")
+        
+        // Mark this placement as loaded and ready to show
+        loadedAds.insert(placementId)
+        print("📋 [Unity Ads] Loaded ads: \(loadedAds)")
+        
+        notifyListeners("onAdLoaded", data: ["placementId": placementId])
+    }
+    
+    public func unityAdsAdFailed(toLoad placementId: String, withError error: UnityAdsLoadError, withMessage message: String) {
+        print("❌ [Unity Ads] Ad failed to load: \(placementId) - \(message)")
+        
+        // Ensure it's not in loaded set
+        loadedAds.remove(placementId)
+        
+        notifyListeners("onAdFailedToLoad", data: ["placementId": placementId, "error": message])
+    }
+    
+    // MARK: - UnityAdsShowDelegate
+    
+    public func unityAdsShowComplete(_ placementId: String, withFinish state: UnityAdsShowCompletionState) {
+        print("✅ [Unity Ads] Ad completed: \(placementId) with state: \(state.rawValue)")
+        
+        // Ad is consumed after showing, automatically reload
+        print("🔄 [Unity Ads] Auto-reloading ad for: \(placementId)")
+        UnityAds.load(placementId, loadDelegate: self)
+        
+        notifyListeners("onAdCompleted", data: ["placementId": placementId, "state": state.rawValue])
+    }
+    
+    public func unityAdsShowFailed(_ placementId: String, withError error: UnityAdsShowError, withMessage message: String) {
+        print("❌ [Unity Ads] Ad failed to show: \(placementId) - \(message)")
+        
+        // Remove from loaded set since show failed
+        loadedAds.remove(placementId)
+        
+        // Try to reload after failure
+        print("🔄 [Unity Ads] Reloading ad after show failure: \(placementId)")
+        UnityAds.load(placementId, loadDelegate: self)
+        
+        notifyListeners("onAdFailedToShow", data: ["placementId": placementId, "error": message])
+    }
+    
+    public func unityAdsShowStart(_ placementId: String) {
+        print("▶️ [Unity Ads] Ad started: \(placementId)")
+        notifyListeners("onAdStarted", data: ["placementId": placementId])
+    }
+    
+    public func unityAdsShowClick(_ placementId: String) {
+        print("👆 [Unity Ads] Ad clicked: \(placementId)")
+        notifyListeners("onAdClicked", data: ["placementId": placementId])
+    }
+    
+    // MARK: - UADSBannerViewDelegate
+    
+    public func bannerViewDidLoad(_ bannerView: UADSBannerView) {
+        print("✅ [Unity Ads] Banner loaded: \(bannerView.placementId)")
+        notifyListeners("onBannerLoaded", data: ["placementId": bannerView.placementId])
+    }
+    
+    public func bannerViewDidError(_ bannerView: UADSBannerView, error: UADSBannerError) {
+        print("❌ [Unity Ads] Banner error: \(bannerView.placementId) - \(error.localizedDescription)")
+        notifyListeners("onBannerError", data: ["placementId": bannerView.placementId, "error": error.localizedDescription])
+    }
+    
+    public func bannerViewDidClick(_ bannerView: UADSBannerView) {
+        print("👆 [Unity Ads] Banner clicked: \(bannerView.placementId)")
+        notifyListeners("onBannerClicked", data: ["placementId": bannerView.placementId])
+    }
+    
+    public func bannerViewDidLeaveApplication(_ bannerView: UADSBannerView) {
+        print("🚪 [Unity Ads] Banner left app: \(bannerView.placementId)")
+    }
+}

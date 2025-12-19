@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <!-- Arkaplan Gradyanı -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0d21"/>
+      <stop offset="100%" stop-color="#1e61ff"/>
+    </linearGradient>
+    
+    <!-- Balon Gradyanları -->
+    <linearGradient id="red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4081"/>
+      <stop offset="100%" stop-color="#ff1744"/>
+    </linearGradient>
+    
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#007bff"/>
+    </linearGradient>
+    
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#76ff03"/>
+      <stop offset="100%" stop-color="#00c851"/>
+    </linearGradient>
+    
+    <linearGradient id="yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd600"/>
+      <stop offset="100%" stop-color="#ff9800"/>
+    </linearGradient>
+    
+    <!-- Parlaklık Efekti -->
+    <radialGradient id="spark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#00eaff" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Arkaplan -->
+  <rect width="128" height="128" fill="url(#bg)" rx="28"/>
+  
+  <!-- Ana Balon Kümesi (Daha büyük ve merkezi) -->
+  <!-- Kırmızı Balon (Ana) -->
+  <circle cx="50" cy="45" r="16" fill="url(#red)" stroke="#fff" stroke-width="2" opacity="0.95"/>
+  <circle cx="50" cy="45" r="11" fill="url(#spark)" opacity="0.7"/>
+  
+  <!-- Mavi Balon -->
+  <circle cx="80" cy="35" r="14" fill="url(#blue)" stroke="#fff" stroke-width="2" opacity="0.9"/>
+  <circle cx="80" cy="35" r="9" fill="url(#spark)" opacity="0.6"/>
+  
+  <!-- Yeşil Balon -->
+  <circle cx="30" cy="65" r="15" fill="url(#green)" stroke="#fff" stroke-width="2" opacity="0.9"/>
+  <circle cx="30" cy="65" r="10" fill="url(#spark)" opacity="0.6"/>
+  
+  <!-- Sarı Balon (Merkez) -->
+  <circle cx="70" cy="65" r="17" fill="url(#yellow)" stroke="#fff" stroke-width="2" opacity="0.95"/>
+  <circle cx="70" cy="65" r="12" fill="url(#spark)" opacity="0.7"/>
+  
+  <!-- Pop Efekti (P Harfi) -->
+  <g transform="translate(64,95)">
+    <circle cx="0" cy="0" r="18" fill="#1e61ff" stroke="#00eaff" stroke-width="3" opacity="0.9"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white">P</text>
+  </g>
+  
+  <!-- Işıltı Efektleri -->
+  <g opacity="0.8">
+    <path d="M20,30 L28,22" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <path d="M100,40 L108,32" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <path d="M40,100 L48,108" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="24" cy="26" r="2" fill="#ffffff"/>
+    <circle cx="104" cy="36" r="2" fill="#ffffff"/>
+    <circle cx="44" cy="104" r="2" fill="#ffffff"/>
+  </g>
+</svg> 

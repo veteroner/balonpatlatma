@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>İletişim - Bilgoo Quiz Oyunu</title>
+    <meta name="description" content="Bilgoo ile iletişime geçin. Sorularınız, önerileriniz ve geri bildirimleriniz için bizimle iletişime geçin.">
+    <meta name="keywords" content="bilgoo, iletişim, destek, geri bildirim, yardım">
+    <style>
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        h1 {
+            color: #1e40af;
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        h2 {
+            color: #1e40af;
+            font-size: 1.8rem;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+        }
+        h3 {
+            color: #374151;
+            font-size: 1.3rem;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+        p {
+            margin-bottom: 20px;
+            color: #4b5563;
+            font-size: 1.1rem;
+        }
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .contact-method {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+        .contact-method:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+        }
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .contact-form {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid #0ea5e9;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        .faq-section {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid #f59e0b;
+        }
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f59e0b;
+        }
+        .faq-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .faq-question {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .faq-answer {
+            color: #78350f;
+            margin: 0;
+        }
+        .response-time {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid #22c55e;
+            text-align: center;
+        }
+        .office-info {
+            background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid #ec4899;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 30px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        .back-link i {
+            margin-right: 8px;
+        }
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .social-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .social-link.email {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        .social-link.website {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+        .social-link.support {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+            .social-links {
+                flex-wrap: wrap;
+            }
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #0f172a, #1e293b);
+                color: #e2e8f0;
+            }
+            .container {
+                background: #1e293b;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            }
+            h1, h2 {
+                color: #60a5fa;
+            }
+            h3 {
+                color: #cbd5e1;
+            }
+            p {
+                color: #94a3b8;
+            }
+            .contact-method {
+                background: linear-gradient(135deg, #334155, #475569);
+                border-color: #475569;
+            }
+            .contact-form {
+                background: linear-gradient(135deg, #082f49, #0c4a6e);
+                border-color: #0ea5e9;
+            }
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                background: #334155;
+                border-color: #475569;
+                color: #e2e8f0;
+            }
+            .form-group label {
+                color: #cbd5e1;
+            }
+            .faq-section {
+                background: linear-gradient(135deg, #451a03, #78350f);
+                border-color: #f59e0b;
+            }
+            .faq-question {
+                color: #fbbf24;
+            }
+            .faq-answer {
+                color: #fde68a;
+            }
+            .response-time {
+                background: linear-gradient(135deg, #052e16, #14532d);
+                border-color: #22c55e;
+            }
+            .office-info {
+                background: linear-gradient(135deg, #500724, #831843);
+                border-color: #ec4899;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">B</div>
+            <h1>İletişim</h1>
+            <p class="subtitle">Bizimle iletişime geçin, size yardımcı olmaktan mutluluk duyarız</p>
+        </div>
+        
+        <div class="response-time">
+            <h3><i class="fas fa-clock" style="margin-right: 10px; color: #22c55e;"></i>Hızlı Yanıt Garantisi</h3>
+            <p>Tüm mesajlarınızı <strong>24 saat içinde</strong> yanıtlıyoruz. Acil durumlar için günün her saati destek sağlıyoruz.</p>
+        </div>
+
+        <h2><i class="fas fa-envelope" style="margin-right: 15px;"></i>İletişim Yöntemleri</h2>
+        <div class="contact-methods">
+            <div class="contact-method">
+                <div class="contact-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3>E-posta</h3>
+                <p><strong>bilgoo.quiz@gmail.com</strong></p>
+                <p>Genel sorular, öneriler ve destek için ana e-posta adresimiz. Tüm mesajlara 24 saat içinde yanıt veriyoruz.</p>
+            </div>
+            <div class="contact-method">
+                <div class="contact-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3>Canlı Destek</h3>
+                <p><strong>7/24 Çevrimiçi</strong></p>
+                <p>Uygulama içi canlı destek özelliği ile anında yardım alın. Teknik sorunlar için en hızlı çözüm yöntemi.</p>
+            </div>
+            <div class="contact-method">
+                <div class="contact-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Web Sitesi</h3>
+                <p><strong>https://bilgoo.com</strong></p>
+                <p>Ana web sitemizden SSS bölümümüze ulaşabilir, güncellemeleri takip edebilirsiniz.</p>
+            </div>
+        </div>
+
+        <div class="social-links">
+            <a href="mailto:bilgoo.quiz@gmail.com" class="social-link email" title="E-posta">
+                <i class="fas fa-envelope"></i>
+            </a>
+            <a href="https://bilgoo.com" class="social-link website" title="Web Sitesi">
+                <i class="fas fa-globe"></i>
+            </a>
+            <a href="#" class="social-link support" title="Destek">
+                <i class="fas fa-headset"></i>
+            </a>
+        </div>
+
+        <div class="contact-form">
+            <h3><i class="fas fa-paper-plane" style="margin-right: 10px; color: #0ea5e9;"></i>Bize Mesaj Gönderin</h3>
+            <form id="contactForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">Ad Soyad *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-posta Adresi *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Konu *</label>
+                    <select id="subject" name="subject" required>
+                        <option value="">Konu seçin...</option>
+                        <option value="technical">Teknik Destek</option>
+                        <option value="account">Hesap Sorunları</option>
+                        <option value="suggestion">Öneri/Geri Bildirim</option>
+                        <option value="bug">Hata Bildirimi</option>
+                        <option value="partnership">İş Birliği</option>
+                        <option value="other">Diğer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Mesajınız *</label>
+                    <textarea id="message" name="message" placeholder="Mesajınızı detaylı bir şekilde yazın..." required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane" style="margin-right: 10px;"></i>
+                    Mesajı Gönder
+                </button>
+            </form>
+        </div>
+
+        <div class="faq-section">
+            <h3><i class="fas fa-question-circle" style="margin-right: 10px; color: #f59e0b;"></i>Sık Sorulan Sorular</h3>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Hesabımı nasıl silebilirim?</div>
+                <div class="faq-answer">A: Hesap silme işlemi için bizimle iletişime geçmeniz yeterlidir. Tüm verileriniz 30 gün içinde tamamen silinir.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Oyun verilerim kayboldu, ne yapmalıyım?</div>
+                <div class="faq-answer">A: Verileriniz Firebase'de güvenli bir şekilde saklanır. Giriş yaptığınız hesabı kontrol edin veya bizimle iletişime geçin.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Yeni özellik önerisim var, nasıl iletebilirim?</div>
+                <div class="faq-answer">A: Önerilerinizi yukarıdaki form üzerinden "Öneri/Geri Bildirim" kategorisinde gönderebilirsiniz. Tüm öneriler değerlendirilir.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Mobil uygulamayı ne zaman çıkacak?</div>
+                <div class="faq-answer">A: PWA teknolojisi sayesinde web sitemiz mobil uygulama gibi çalışır. Ana ekranınıza ekleyerek uygulama deneyimi yaşayabilirsiniz.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Reklam görmek istemiyorum, premium üyelik var mı?</div>
+                <div class="faq-answer">A: Premium üyelik özelliği yakında gelecek. Reklamlar platformumuzun ücretsiz kalmasını sağlar, anlayışınız için teşekkürler.</div>
+            </div>
+        </div>
+
+        <div class="office-info">
+            <h3><i class="fas fa-building" style="margin-right: 10px; color: #ec4899;"></i>Ofis Bilgileri</h3>
+            <p><strong>Şirket:</strong> Teknova Bilişim</p>
+            <p><strong>Faaliyet Alanı:</strong> Yazılım Geliştirme</p>
+            <p><strong>Kuruluş Yılı:</strong> 2025</p>
+            <p><strong>Merkez:</strong> Türkiye</p>
+            <p><strong>Çalışma Saatleri:</strong> Pazartesi - Cuma, 09:00 - 18:00 (GMT+3)</p>
+            <p><strong>Destek:</strong> 7/24 Çevrimiçi Destek</p>
+        </div>
+
+        <h2><i class="fas fa-handshake" style="margin-right: 15px;"></i>İş Birliği Fırsatları</h2>
+        <p>Eğitim kurumları, content creator'lar ve teknoloji şirketleri ile iş birliği yapmaktan mutluluk duyarız:</p>
+        <ul style="margin: 20px 0; padding-left: 20px;">
+            <li style="margin: 10px 0;">Eğitim kurumları için özel soru havuzları</li>
+            <li style="margin: 10px 0;">İçerik ortaklıkları</li>
+            <li style="margin: 10px 0;">API entegrasyonları</li>
+            <li style="margin: 10px 0;">Beyaz etiket çözümler</li>
+            <li style="margin: 10px 0;">Sponsorluk ve reklam fırsatları</li>
+        </ul>
+
+        <h2><i class="fas fa-shield-alt" style="margin-right: 15px;"></i>Veri Güvenliği ve Gizlilik</h2>
+        <p>Kişisel verilerinizin güvenliği bizim için en önemli önceliktir. Tüm iletişimleriniz şifrelenir ve güvenli bir şekilde saklanır. Detaylı bilgi için <a href="privacy-policy.html" style="color: #3b82f6; text-decoration: none;">Gizlilik Politikamızı</a> inceleyebilirsiniz.</p>
+
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Ana Sayfaya Dön
+        </a>
+    </div>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            // Form verilerini al
+            const formData = new FormData(event.target);
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+            
+            // E-posta gövdesini oluştur
+            const emailBody = `
+Gönderen: ${name}
+E-posta: ${email}
+Konu: ${subject}
+
+Mesaj:
+${message}
+
+---
+Bu mesaj Bilgoo iletişim formundan gönderilmiştir.
+            `.trim();
+            
+            // Mailto link oluştur
+            const mailtoLink = `mailto:bilgoo.quiz@gmail.com?subject=Bilgoo İletişim: ${subject}&body=${encodeURIComponent(emailBody)}`;
+            
+            // E-posta istemcisini aç
+            window.location.href = mailtoLink;
+            
+            // Başarı mesajı göster
+            alert('E-posta istemciniz açılacak. Mesajınızı göndermek için gönder butonuna tıklayın.');
+            
+            // Formu temizle
+            event.target.reset();
+        }
+    </script>
+</body>
+</html> 

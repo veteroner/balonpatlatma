@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0d21"/>
+      <stop offset="100%" stop-color="#1e61ff"/>
+    </linearGradient>
+    
+    <!-- Balloon Gradients -->
+    <linearGradient id="red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4081"/>
+      <stop offset="100%" stop-color="#ff1744"/>
+    </linearGradient>
+    
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#007bff"/>
+    </linearGradient>
+    
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#76ff03"/>
+      <stop offset="100%" stop-color="#00c851"/>
+    </linearGradient>
+    
+    <linearGradient id="yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd600"/>
+      <stop offset="100%" stop-color="#ff9800"/>
+    </linearGradient>
+    
+    <linearGradient id="purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e91e63"/>
+      <stop offset="100%" stop-color="#9c27b0"/>
+    </linearGradient>
+    
+    <!-- Shine Effect -->
+    <radialGradient id="spark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#00eaff" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="128" height="128" fill="url(#bg)" rx="24"/>
+  
+  <!-- Balloon Cluster -->
+  <!-- Red Balloon (Main) -->
+  <circle cx="45" cy="35" r="12" fill="url(#red)" stroke="#fff" stroke-width="1.5" opacity="0.95"/>
+  <circle cx="45" cy="35" r="8" fill="url(#spark)" opacity="0.6"/>
+  
+  <!-- Blue Balloon -->
+  <circle cx="75" cy="25" r="10" fill="url(#blue)" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+  <circle cx="75" cy="25" r="6" fill="url(#spark)" opacity="0.5"/>
+  
+  <!-- Green Balloon -->
+  <circle cx="25" cy="55" r="11" fill="url(#green)" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+  <circle cx="25" cy="55" r="7" fill="url(#spark)" opacity="0.5"/>
+  
+  <!-- Yellow Balloon (Center) -->
+  <circle cx="65" cy="55" r="13" fill="url(#yellow)" stroke="#fff" stroke-width="1.5" opacity="0.95"/>
+  <circle cx="65" cy="55" r="9" fill="url(#spark)" opacity="0.6"/>
+  
+  <!-- Purple Balloon -->
+  <circle cx="90" cy="70" r="9" fill="url(#purple)" stroke="#fff" stroke-width="1.5" opacity="0.85"/>
+  <circle cx="90" cy="70" r="5" fill="url(#spark)" opacity="0.4"/>
+  
+  <!-- Pop Effect -->
+  <g transform="translate(64,90)">
+    <path d="M-8,-8 L8,8 M8,-8 L-8,8" stroke="#00eaff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+    <path d="M-12,0 L12,0 M0,-12 L0,12" stroke="#00eaff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="0" cy="0" r="4" fill="#00eaff" opacity="0.9"/>
+  </g>
+  
+  <!-- Sparkles -->
+  <g opacity="0.7">
+    <path d="M15,25 L20,20" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <path d="M95,35 L100,30" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <path d="M35,85 L40,90" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="18" cy="22" r="1.5" fill="#ffffff"/>
+    <circle cx="98" cy="32" r="1.5" fill="#ffffff"/>
+    <circle cx="38" cy="88" r="1.5" fill="#ffffff"/>
+  </g>
+</svg>

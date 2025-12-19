@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PopGo</title>
+    
+    <!-- Mobile optimization -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PopGo">
+    <meta name="theme-color" content="#0a0d21">
+    <meta name="description" content="PopGo - Eğlenceli ve modern balon patlatma oyunu. Üç farklı oyun modu ile keyifli vakit geçirin!">
+    <meta name="keywords" content="popgo, balon patlatma, oyun, eğlence, puzzle, mobile game">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='balloonGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff4081'/%3E%3Cstop offset='100%25' stop-color='%23ff9800'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='24' r='16' fill='url(%23balloonGrad)' stroke='%23fff' stroke-width='2'/%3E%3Cellipse cx='32' cy='24' rx='12' ry='14' fill='url(%23balloonGrad)' opacity='0.9'/%3E%3Cpath d='M32 40 Q32 45 32 50' stroke='%23ff4081' stroke-width='3' fill='none'/%3E%3Cpath d='M30 50 L34 50 L33 54 L31 54 Z' fill='%23ff4081'/%3E%3Ctext x='32' y='30' text-anchor='middle' fill='white' font-family='Arial' font-size='12' font-weight='bold'%3EP%3C/text%3E%3C/svg%3E">
+    
+    <!-- PopGo Modern Icon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='balloonGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff4081'/%3E%3Cstop offset='100%25' stop-color='%23ff9800'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='24' r='16' fill='url(%23balloonGrad)' stroke='%23fff' stroke-width='2'/%3E%3Cellipse cx='32' cy='24' rx='12' ry='14' fill='url(%23balloonGrad)' opacity='0.9'/%3E%3Cpath d='M32 40 Q32 45 32 50' stroke='%23ff4081' stroke-width='3' fill='none'/%3E%3Cpath d='M30 50 L34 50 L33 54 L31 54 Z' fill='%23ff4081'/%3E%3Ctext x='32' y='30' text-anchor='middle' fill='white' font-family='Arial' font-size='12' font-weight='bold'%3EP%3C/text%3E%3C/svg%3E">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-bg-particles"></div>
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="teknova-logo">
+                    <div class="logo-text gradient-text">Teknova</div>
+                    <div class="logo-subtitle">
+                        <span>Game Labs</span>
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <svg width="500" height="120" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="circuit-board">
+                        <defs>
+                            <linearGradient id="circuit-gradient" x1="0" y1="0" x2="500" y2="0" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#3a8dde"/>
+                                <stop offset="0.5" stop-color="#7b1fa2"/>
+                                <stop offset="1" stop-color="#00eaff"/>
+                            </linearGradient>
+                            <radialGradient id="circuit-gradient-node" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
+                                <stop offset="0%" stop-color="#00eaff"/>
+                                <stop offset="100%" stop-color="#7b1fa2"/>
+                            </radialGradient>
+                        </defs>
+                        <!-- Devre çizgileri -->
+                        <path d="M60 70 L100 70 L120 50 L180 50 L200 70 L250 70 L270 50 L330 50 L350 70 L400 70" class="circuit-line" />
+                        <path d="M80 80 L130 80 L150 60 L220 60 L240 80 L300 80 L320 60 L380 60 L400 80" class="circuit-line" />
+                        <path d="M40 90 L70 90 L90 70 L140 70 L160 90 L200 90 L220 70 L280 70 L300 90 L350 90 L370 70 L420 70" class="circuit-line" />
+                        <!-- Devre noktaları -->
+                        <circle cx="60" cy="70" r="3" class="circuit-node" />
+                        <circle cx="100" cy="70" r="3" class="circuit-node" />
+                        <circle cx="120" cy="50" r="3" class="circuit-node" />
+                        <circle cx="180" cy="50" r="3" class="circuit-node" />
+                        <circle cx="200" cy="70" r="3" class="circuit-node" />
+                        <circle cx="250" cy="70" r="3" class="circuit-node" />
+                        <circle cx="270" cy="50" r="3" class="circuit-node" />
+                        <circle cx="330" cy="50" r="3" class="circuit-node" />
+                        <circle cx="350" cy="70" r="3" class="circuit-node" />
+                        <circle cx="400" cy="70" r="3" class="circuit-node" />
+                        <circle cx="80" cy="80" r="3" class="circuit-node" />
+                        <circle cx="130" cy="80" r="3" class="circuit-node" />
+                        <circle cx="150" cy="60" r="3" class="circuit-node" />
+                        <circle cx="220" cy="60" r="3" class="circuit-node" />
+                        <circle cx="240" cy="80" r="3" class="circuit-node" />
+                        <circle cx="300" cy="80" r="3" class="circuit-node" />
+                        <circle cx="320" cy="60" r="3" class="circuit-node" />
+                        <circle cx="380" cy="60" r="3" class="circuit-node" />
+                        <circle cx="400" cy="80" r="3" class="circuit-node" />
+                        <circle cx="40" cy="90" r="3" class="circuit-node" />
+                        <circle cx="70" cy="90" r="3" class="circuit-node" />
+                        <circle cx="90" cy="70" r="3" class="circuit-node" />
+                        <circle cx="140" cy="70" r="3" class="circuit-node" />
+                        <circle cx="160" cy="90" r="3" class="circuit-node" />
+                        <circle cx="200" cy="90" r="3" class="circuit-node" />
+                        <circle cx="220" cy="70" r="3" class="circuit-node" />
+                        <circle cx="280" cy="70" r="3" class="circuit-node" />
+                        <circle cx="300" cy="90" r="3" class="circuit-node" />
+                        <circle cx="350" cy="90" r="3" class="circuit-node" />
+                        <circle cx="370" cy="70" r="3" class="circuit-node" />
+                        <circle cx="420" cy="70" r="3" class="circuit-node" />
+                    </svg>
+                </div>
+            </div>
+            <div class="splash-loader modern-loader">
+                <div class="splash-loader-bar"></div>
+                <div class="loader-percentage glass">%0</div>
+            </div>
+        </div>
+    </div>
+    <div id="game-root" style="visibility: hidden;">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    
+    <!-- Mobil Tab Menü - Basit ve etkili -->
+    <div id="mobileTabMenu" class="mobile-tab-menu">
+        <div class="tab-content">
+            <div class="tab-panel active" id="homePanel">
+                <h3 style="margin: 0 0 15px 0; color: #00eaff; text-align: center;">🏠 Ana Menü</h3>
+                <div style="text-align: center;">
+                    <button id="startGameBtn" class="btn-primary" style="width: 100%; margin: 10px 0; padding: 15px; background: linear-gradient(45deg, #00eaff, #7b1fa2); border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">
+                        🎮 Oyunu Başlat
+                    </button>
+                    <button id="settingsBtn" class="btn-secondary" style="width: 100%; margin: 10px 0; padding: 15px; background: rgba(255, 255, 255, 0.1); border: 2px solid #00eaff; border-radius: 10px; color: white; font-size: 16px; cursor: pointer;">
+                        ⚙️ Ayarlar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tab-panel" id="gamePanel">
+                <div id="hud" style="text-align: center; color: white;">
+                    <h3 style="margin: 0 0 15px 0; color: #00eaff;">🎮 Oyun</h3>
+                    <span id="score" style="font-size: 18px; font-weight: bold;">Skor: 0</span>
+                    <button id="restartButton" style="display:none; margin-top: 15px; padding: 10px 20px; background: #ff4444; border: none; border-radius: 8px; color: white; cursor: pointer;">Tekrar Oyna</button>
+                </div>
+            </div>
+            
+            <div class="tab-panel" id="statsPanel">
+                <div class="stats-container" style="color: white;">
+                    <h3 style="margin: 0 0 15px 0; color: #00eaff; text-align: center;">📊 İstatistikler</h3>
+                    <div id="statsContent" style="display: grid; gap: 10px;">
+                        <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span class="stat-label">� En Yüksek Skor:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span class="stat-label">� Toplam Skor:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span class="stat-label">🎮 Oynanan Oyun:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span class="stat-label">💥 Patlatılan Balon:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-panel" id="powerupsPanel">
+                <div class="powerups-container" style="color: white;">
+                    <h3 style="margin: 0 0 15px 0; color: #00eaff; text-align: center;">⚡ Güçler</h3>
+                    <div id="powerupsList" style="display: grid; gap: 10px;">
+                        <div class="powerup-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                            <span>🎯 Rainbow: <span id="rainbowCount">0</span></span>
+                            <button onclick="usePowerup('rainbow')" style="padding: 5px 15px; background: #00eaff; border: none; border-radius: 5px; color: white; cursor: pointer;">Kullan</button>
+                        </div>
+                        <div class="powerup-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                            <span>🔥 Fireball: <span id="fireballCount">0</span></span>
+                            <button onclick="usePowerup('fireball')" style="padding: 5px 15px; background: #ff4444; border: none; border-radius: 5px; color: white; cursor: pointer;">Kullan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="homePanel">
+                <i>🏠</i>
+                <span>Ana</span>
+            </button>
+            <button class="tab-btn" data-tab="gamePanel">
+                <i>🎮</i>
+                <span>Oyun</span>
+            </button>
+            <button class="tab-btn" data-tab="statsPanel">
+                <i>📊</i>
+                <span>İstatistik</span>
+            </button>
+            <button class="tab-btn" data-tab="powerupsPanel">
+                <i>⚡</i>
+                <span>Güçler</span>
+            </button>
+        </div>
+    </div>
+                        </div>
+                        <div class="powerup-item">
+                            <span>⚡ Lightning: <span id="lightningCount">0</span></span>
+                            <button onclick="usePowerup('lightning')">Kullan</button>
+                        </div>
+                        <div class="powerup-item">
+                            <span>❄️ Freeze: <span id="freezeCount">0</span></span>
+                            <button onclick="usePowerup('freeze')">Kullan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-panel" id="settingsPanel">
+                <div class="settings-container">
+                    <h3>⚙️ Ayarlar</h3>
+                    <div class="setting-item">
+                        <label>🔊 Ses Efektleri</label>
+                        <input type="range" id="soundVolume" min="0" max="100" value="70">
+                    </div>
+                    <div class="setting-item">
+                        <label>🎵 Müzik</label>
+                        <input type="range" id="musicVolume" min="0" max="100" value="50">
+                    </div>
+                    <div class="setting-item">
+                        <label>📳 Titreşim</label>
+                        <input type="checkbox" id="vibrationEnabled" checked>
+                    </div>
+                    <div class="setting-item">
+                        <button id="exportDataButton">📥 Verileri İndir</button>
+                    </div>
+                    <div class="setting-item">
+                        <button id="resetDataButton">🗑️ Verileri Sıfırla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="gamePanel">
+                <i class="fas fa-gamepad" aria-hidden="true">🎮</i>
+                <span>Oyun</span>
+            </button>
+            <button class="tab-btn" data-tab="statsPanel">
+                <i class="fas fa-chart-bar" aria-hidden="true">📊</i>
+                <span>İstatistik</span>
+            </button>
+            <button class="tab-btn" data-tab="powerupsPanel">
+                <i class="fas fa-magic" aria-hidden="true">⚡</i>
+                <span>Güçler</span>
+            </button>
+            <button class="tab-btn" data-tab="settingsPanel">
+                <i class="fas fa-cog" aria-hidden="true">⚙️</i>
+                <span>Ayarlar</span>
+            </button>
+        </div>
+    </div>
+
+        <div id="startScreen">
+            <h1 class="game-title">PopGo</h1>
+            <div class="icon-container">
+                <div class="logo-icon">
+                    <i class="fas fa-circle" style="color: #ff4081; font-size: 3rem; position: relative;">
+                        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem; color: white; font-weight: bold;">P</span>
+                    </i>
+                </div>
+                <span class="balloon-icon">🎈</span>
+                <span class="balloon-icon">🎈</span>
+                <span class="balloon-icon">🎈</span>
+            </div>
+            
+            <!-- Oyun Modu Seçimi -->
+            <div class="game-mode-selection">
+                <h3>Oyun Modu Seç:</h3>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" data-mode="classic">
+                        <span class="mode-icon">🎯</span>
+                        <div class="mode-info">
+                            <strong>Klasik</strong>
+                            <small>Sınırsız hamle</small>
+                        </div>
+                    </button>
+                    <button class="mode-btn" data-mode="strategy">
+                        <span class="mode-icon">🧠</span>
+                        <div class="mode-info">
+                            <strong>Strateji</strong>
+                            <small>60 hamle sınırı</small>
+                        </div>
+                    </button>
+                    <button class="mode-btn" data-mode="arcade">
+                        <span class="mode-icon">⚡</span>
+                        <div class="mode-info">
+                            <strong>Arcade</strong>
+                            <small>5 dakika süre</small>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <button id="startButton">Başla</button>
+        </div>
+    </div>
+
+    <!-- TAM EKRAN BİTİŞ EKRANI -->
+        <div id="endScreen" class="modal-overlay" style="display:none;">
+            <div class="end-content">
+                <h1 id="endTitle">Oyun Bitti</h1>
+                <p id="endSubtitle">Skorunuz: <span id="finalScore">0</span></p>
+                <button id="endRestartButton">Tekrar Oyna</button>
+            </div>
+        </div>
+
+        <!-- İstatistik Modal -->
+        <div id="statsModal" class="modal-overlay" style="display:none;">
+            <div class="stats-content">
+                <h2>📊 Oyuncu İstatistikleri</h2>
+                <div id="statsDetails"></div>
+                <div class="stats-actions">
+                    <button id="exportDataButton">📥 Verileri İndir</button>
+                    <button id="resetDataButton">🗑️ Sıfırla</button>
+                    <button id="closeStatsButton">Kapat</button>
+                </div>
+            </div>
+        </div>    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+    <script src="splash-screen.js"></script>
+    <script src="app.js" type="module"></script>
+
+    <script>
+        // Splash Screen başlatma
+        const splash = new TeknovaSplashScreen({
+            duration: 3000,
+            onComplete: () => {
+                document.getElementById('game-root').style.visibility = 'visible';
+            }
+        });
+        splash.init();
+
+        // Basit bir PWA kurulumunun parçası olarak service worker kaydı
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .catch(err => console.error('Service Worker kaydı başarısız:', err));
+            });
+        }
+    </script>
+</body>
+</html> 
