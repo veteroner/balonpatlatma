@@ -4,10 +4,9 @@ import AppTrackingTransparency
 import AdSupport
 import GoogleMobileAds
 import WebKit
-import UnityAds
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, UnityAdsInitializationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
@@ -29,17 +28,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UnityAdsInitializationDel
             print("✅ MobileAds.start() completed successfully (PRODUCTION MODE)")
         })
         print("✅ MobileAds.start() called in AppDelegate (PRODUCTION MODE - Real Ads)")
-        
-        // 🎮 Initialize Unity Ads SDK - PRODUCTION MODE
-        UnityAds.initialize("5970926", testMode: false, initializationDelegate: self)
-        print("🎮 Unity Ads initialization started (PRODUCTION MODE - Real Ads)")
-        
-        // 🔧 Manually register Unity Ads Capacitor Plugin
-        // This ensures the plugin is discoverable by the Capacitor bridge
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.registerUnityAdsPlugin()
-        }
-        
+
         // ATT permission request DISABLED - causes repeated dialogs
         // Comment out to prevent multiple ATT prompts
         // DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -230,26 +219,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UnityAdsInitializationDel
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
-    }
-    
-    // MARK: - UnityAdsInitializationDelegate
-    
-    func initializationComplete() {
-        print("✅ Unity Ads initialized successfully (iOS Game ID: 5970926 - PRODUCTION MODE)")
-    }
-    
-    func initializationFailed(_ error: UnityAdsInitializationError, withMessage message: String) {
-        print("❌ Unity Ads initialization failed: \(message)")
-    }
-    
-    // MARK: - Unity Ads Plugin Registration
-    
-    private func registerUnityAdsPlugin() {
-        print("🔧 Attempting to register Unity Ads Capacitor Plugin...")
-        
-        // The plugin is automatically registered via @objc annotation
-        // This method is kept for logging purposes
-        print("✅ Unity Ads Capacitor Plugin should be auto-registered via @objc(UnityAdsCapacitorPlugin)")
     }
     
     // ✅ AGGRESSIVE FIX: Viewport düzeltmesi - Reklam kapandıktan sonra oyun alanının kaymasını önler
