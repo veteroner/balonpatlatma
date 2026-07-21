@@ -461,3 +461,43 @@
 #game-root .overlay-menu .menu-btn:not(.primary):not(.danger) {
   border-color: rgba(0, 234, 255, 0.16) !important;
 }
+
+/* ==================== OYUN MODU SEÇİN MODALI ======================== */
+/* (#gameModeOverlay body'ye dinamik eklenir — kendi ID'siyle hedeflenir) */
+
+#gameModeOverlay .game-mode-modal {
+  background: linear-gradient(160deg, #111634, #0d1128) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
+}
+#gameModeOverlay .mode-title {
+  color: var(--rd-tx) !important;
+  font-size: 1.5rem !important;
+  text-shadow: none !important;
+  letter-spacing: 0.5px !important;
+}
+#gameModeOverlay .mode-card {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease !important;
+}
+#gameModeOverlay .mode-card:hover,
+#gameModeOverlay .mode-card.classic,
+#gameModeOverlay .mode-card.challenge,
+#gameModeOverlay .mode-card.endless {
+  border-color: var(--rd-glass-brd) !important;
+}
+#gameModeOverlay .mode-card:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: var(--rd-cyan-bg) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: none !important;
+}
+#gameModeOverlay .mode-card:active { transform: scale(0.98) !important; }
+#gameModeOverlay .mode-name { color: var(--rd-tx) !important; }
+#gameModeOverlay .mode-desc { color: var(--rd-tx2) !important; }
+#gameModeOverlay .mode-icon {
+  filter: drop-shadow(0 0 10px rgba(0, 234, 255, 0.30)) !important;
+}
