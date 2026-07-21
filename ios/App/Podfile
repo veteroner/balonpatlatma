@@ -23,25 +23,15 @@ def capacitor_pods
   pod 'CapacitorNetwork', :path => '../../node_modules/@capacitor/network'
   pod 'CapacitorSplashScreen', :path => '../../node_modules/@capacitor/splash-screen'
   pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
-  pod 'CapacitorUnityAds', :path => '../../node_modules/capacitor-unity-ads'
 end
 
 target 'App' do
   capacitor_pods
   # Add your Pods here
-  
+
   # ⚡️ PERFORMANCE FIX: Force update AdMob SDK to match Android version (23.x)
-  # Old version (11.3.0) has memory leaks and slower ad loading
   # NOTE: @capacitor-community/admob@8.x requires Google-Mobile-Ads-SDK (~> 12.14)
   pod 'Google-Mobile-Ads-SDK', '~> 12.14'
-  
-  # 🎮 Unity Ads SDK - Native implementation
-  pod 'UnityAds', '~> 4.12'
-end
-
-pre_install do |installer|
-  # Workaround for UnityAds static framework issue
-  Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
 end
 
 post_install do |installer|

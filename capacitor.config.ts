@@ -39,13 +39,6 @@ const config: CapacitorConfig = {
       tagForUnderAgeOfConsent: false,
       maxAdContentRating: 'PG',
       requestTrackingAuthorization: true
-    },
-    UnityAdsPlugin: {
-      // Custom Unity Ads plugin configuration
-      gameId: '5970927', // Android Game ID
-      iosGameId: '5970926', // iOS Game ID
-      testMode: false, // PRODUCTION MODE
-      personalized: true
     }
   },
   android: {

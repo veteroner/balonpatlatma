@@ -31,7 +31,6 @@
     "@capacitor/network": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
-    "capacitor-unity-ads": "^1.0.0",
     "sharp": "^0.34.3"
   },
   "devDependencies": {

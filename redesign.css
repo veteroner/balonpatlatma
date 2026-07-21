@@ -1,0 +1,463 @@
+/* =========================================================================
+   PopGo — Arayüz sadeleştirme katmanı (redesign)
+   style.css'ten SONRA yüklenir; onaylanan neon-cam yönü uygular.
+   Not: #game-root öneki + !important, eski dağınık/!important kuralları
+   güvenle geçmek için. Yalnızca GÖRÜNÜM değişir; boyut/konum korunur
+   (özellikle .power-ball-bar yüksekliği = canvas hesabı bozulmasın).
+   Geri almak için: index.html'den <link ... redesign.css> satırını sil.
+   ========================================================================= */
+
+:root {
+  --rd-glass: rgba(255, 255, 255, 0.055);
+  --rd-glass-brd: rgba(255, 255, 255, 0.12);
+  --rd-cyan: #22e6ff;
+  --rd-cyan-brd: rgba(0, 234, 255, 0.32);
+  --rd-cyan-bg: rgba(0, 234, 255, 0.09);
+  --rd-pink: #ff3d7f;
+  --rd-pink-hi: #ff5c95;
+  --rd-tx: #eaf2ff;
+  --rd-tx2: #aabcdd;
+  --rd-tx3: #65769c;
+  --rd-gold: #ffd34d;
+  --rd-r: 16px;
+  --rd-r-sm: 12px;
+}
+
+/* ============================ BAŞLANGIÇ EKRANI ============================ */
+
+/* Eski neon el yazısı logo gizlenir; yerine temiz wordmark */
+#game-root #startScreen .neon-text,
+#game-root #startScreen .icon-container { display: none !important; }
+
+/* Wordmark + tagline + en-yüksek rozeti (maket düzeni) */
+#game-root #startScreen .popgo-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 8px !important;
+}
+#game-root #startScreen .popgo-wordmark {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 3.4rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.5px !important;
+  background: linear-gradient(92deg, #22e6ff, #7cf7ff, #ff5c95, #ffd34d) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 16px rgba(0, 234, 255, 0.32)) !important;
+}
+#game-root #startScreen .popgo-tagline {
+  color: var(--rd-tx2) !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.34em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+}
+#game-root #startScreen .popgo-hs {
+  margin-top: 10px !important;
+  padding: 7px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 211, 77, 0.10) !important;
+  border: 1px solid rgba(255, 211, 77, 0.30) !important;
+  color: #ffd34d !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+}
+
+/* Mod seçim paneli: tek tip cam */
+#game-root #startScreen .game-mode-selection {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important;
+}
+#game-root #startScreen .game-mode-selection h3 {
+  color: var(--rd-tx2) !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+/* Mod satırları: dikey liste (ikon + bilgi + seçim işareti) */
+#game-root #startScreen .mode-buttons {
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  gap: 10px !important;
+}
+#game-root #startScreen .mode-btn {
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 12px 14px !important;
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  color: var(--rd-tx) !important;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease !important;
+}
+#game-root #startScreen .mode-btn:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+#game-root #startScreen .mode-btn.active {
+  background: var(--rd-cyan-bg) !important;
+  border-color: var(--rd-cyan) !important;
+  box-shadow: inset 0 0 0 1px var(--rd-cyan-brd) !important;
+}
+#game-root #startScreen .mode-btn .mode-icon {
+  margin: 0 !important;
+  width: 28px !important;
+  font-size: 1.5rem !important;
+  text-align: center !important;
+  flex: 0 0 auto !important;
+}
+#game-root #startScreen .mode-btn .mode-info {
+  text-align: left !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+#game-root #startScreen .mode-btn .mode-info strong { color: var(--rd-tx) !important; font-size: 1rem !important; }
+#game-root #startScreen .mode-btn .mode-info small { color: var(--rd-tx2) !important; opacity: 1 !important; font-size: 0.72rem !important; }
+#game-root #startScreen .mode-btn .mode-check {
+  margin-left: auto !important;
+  color: var(--rd-cyan) !important;
+  font-size: 1.05rem !important;
+  opacity: 0 !important;
+  flex: 0 0 auto !important;
+  transition: opacity 0.18s ease !important;
+}
+#game-root #startScreen .mode-btn.active .mode-check { opacity: 1 !important; }
+
+/* Tek güçlü pembe BAŞLA butonu (4rem -> makul) */
+#game-root #startScreen #startButton {
+  padding: 16px 54px !important;
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  border: none !important;
+  border-radius: var(--rd-r) !important;
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 26px rgba(255, 61, 127, 0.42) !important;
+}
+#game-root #startScreen #startButton:hover {
+  transform: scale(1.04) !important;
+  background: linear-gradient(180deg, #ff6ea3, var(--rd-pink-hi)) !important;
+}
+
+/* ================================= MENÜ ================================== */
+
+/* Bölümler: tek tip cam panel (hepsi aynı görünsün) */
+#game-root .overlay-menu .menu-section {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+#game-root .overlay-menu .menu-section:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  box-shadow: 0 6px 22px rgba(0, 234, 255, 0.10) !important;
+  transform: none !important;
+}
+#game-root .overlay-menu .menu-section h3 {
+  color: var(--rd-cyan) !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  text-shadow: none !important;
+}
+#game-root .overlay-menu .menu-section h3::after { display: none !important; }
+
+/* Butonlar: tutarlı; birincil (Oyunu Başlat) pembe */
+#game-root .overlay-menu .menu-btn {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  color: var(--rd-tx) !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+#game-root .overlay-menu .menu-btn:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  transform: none !important;
+}
+#game-root .overlay-menu .menu-btn.primary {
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(255, 61, 127, 0.34) !important;
+}
+#game-root .overlay-menu .menu-btn.danger {
+  border-color: rgba(255, 90, 90, 0.4) !important;
+  color: #ff9a9a !important;
+}
+
+/* İstatistik kartları: cyan sayı */
+#game-root .overlay-menu .stat-card {
+  background: var(--rd-cyan-bg) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+}
+#game-root .overlay-menu .stat-value { color: var(--rd-cyan) !important; }
+#game-root .overlay-menu .stat-label { color: var(--rd-tx2) !important; }
+
+/* Ayar slider dolu kısmı ve genel okunurluk */
+#game-root .overlay-menu .setting-item label { color: var(--rd-tx) !important; }
+#game-root .overlay-menu input[type="range"] { accent-color: var(--rd-cyan) !important; }
+
+/* Kapat butonu */
+#game-root .overlay-menu .close-menu {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  color: var(--rd-cyan) !important;
+}
+
+/* ============================== OYUN İÇİ / HUD ============================ */
+
+/* Skor: sade pill */
+#game-root #gameHUD .score-display {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  border-radius: 999px !important;
+  color: var(--rd-tx) !important;
+  padding: 8px 16px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Reklam-ödül butonu: köşede küçük, pembe ton */
+#game-root #gameHUD .ad-reward-button {
+  background: rgba(255, 61, 127, 0.14) !important;
+  border: 1px solid rgba(255, 61, 127, 0.40) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* Güç çubuğu: derli toplu cam şerit (YÜKSEKLİK 80px KORUNUR) */
+#game-root .power-ball-bar {
+  background: rgba(6, 9, 20, 0.72) !important;
+  border-top: 1px solid var(--rd-glass-brd) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Güç butonları: yuvarlak kare cam (daire yerine), tutarlı */
+#game-root .power-ball-bar .power-ball-btn {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+#game-root .power-ball-bar .power-ball-btn:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: none !important;
+}
+#game-root .power-ball-bar .power-ball-btn.empty { opacity: 0.4 !important; }
+
+/* Sayaç rozeti: pembe */
+#game-root .power-ball-bar .power-count {
+  background: var(--rd-pink) !important;
+  border: 2px solid #0a0d21 !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+/* İkon parıltısını yumuşat */
+#game-root .power-ball-bar .power-icon {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.35)) !important;
+}
+
+/* Çubuk-içi MENÜ butonu (www yapısı): cyan vurgulu */
+#game-root .power-ball-bar .hamburger-in-bar {
+  background: var(--rd-cyan-bg) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  color: var(--rd-cyan) !important;
+}
+#game-root .power-ball-bar .hamburger-in-bar .hamburger-lines span { background: var(--rd-cyan) !important; }
+#game-root .power-ball-bar .hamburger-in-bar .menu-text { color: var(--rd-cyan) !important; }
+
+/* ============================ BİTİŞ EKRANI ============================== */
+/* (#game-root DIŞINDA — kendi ID'siyle hedefleniyor) */
+
+#endScreen .end-content h1 {
+  color: var(--rd-pink-hi) !important;
+  font-size: 2.8rem !important;
+  text-shadow: none !important;
+  letter-spacing: 0.5px !important;
+}
+#endScreen .end-content p { color: var(--rd-tx2) !important; font-size: 1.4rem !important; }
+#endScreen .end-content p span { color: var(--rd-cyan) !important; font-weight: 700 !important; }
+#endScreen #endRestartButton {
+  border-radius: var(--rd-r) !important;
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  box-shadow: 0 10px 26px rgba(255, 61, 127, 0.42) !important;
+  font-weight: 800 !important;
+}
+
+/* ========================== İSTATİSTİK MODALI ========================== */
+
+#statsModal .stats-content {
+  background: linear-gradient(160deg, #111634, #0d1128) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+#statsModal .stats-content h2 {
+  color: var(--rd-cyan) !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0.02em !important;
+}
+#statsModal .stat-item {
+  background: var(--rd-cyan-bg) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+}
+#statsModal .stat-value { color: var(--rd-cyan) !important; }
+#statsModal .stat-label { color: var(--rd-tx2) !important; }
+
+#statsModal .stats-actions button {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  color: var(--rd-tx) !important;
+  font-weight: 600 !important;
+}
+#statsModal .stats-actions button:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  transform: none !important;
+}
+#statsModal #resetDataButton {
+  background: rgba(255, 90, 90, 0.14) !important;
+  border-color: rgba(255, 90, 90, 0.40) !important;
+  color: #ff9a9a !important;
+}
+#statsModal #closeStatsButton {
+  background: var(--rd-cyan-bg) !important;
+  border-color: var(--rd-cyan-brd) !important;
+  color: var(--rd-cyan) !important;
+}
+
+/* ====================== GÜÇ TOPU BİLGİ MODALI ========================= */
+/* (#game-root DIŞINDA — kendi ID'siyle) */
+
+#powerBallModal .modal-content {
+  background: linear-gradient(160deg, #111634, #0d1128) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+}
+#powerBallModal .modal-icon {
+  font-size: 64px !important;
+  filter: drop-shadow(0 0 12px rgba(0, 234, 255, 0.40)) !important;
+  animation: none !important;
+}
+#powerBallModal .modal-title {
+  color: var(--rd-tx) !important;
+  text-shadow: none !important;
+  letter-spacing: 1.5px !important;
+}
+#powerBallModal .modal-description { color: var(--rd-tx2) !important; }
+#powerBallModal .modal-ad-btn {
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  border-radius: var(--rd-r-sm) !important;
+  box-shadow: 0 8px 20px rgba(255, 61, 127, 0.40) !important;
+  animation: none !important;
+}
+#powerBallModal .modal-close-btn {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  color: var(--rd-tx2) !important;
+}
+
+/* =================== MENÜ İÇİ GÜÇ-UP BUTONLARI ======================= */
+
+#game-root .overlay-menu .powerup-btn {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  color: var(--rd-tx) !important;
+}
+#game-root .overlay-menu .powerup-btn:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: var(--rd-cyan-bg) !important;
+}
+#game-root .overlay-menu .powerup-count { color: var(--rd-cyan) !important; }
+
+/* ========================= GÜÇ-UP TOOLTIP =========================== */
+
+#powerupTooltip .tooltip-content {
+  background: linear-gradient(160deg, rgba(17, 22, 52, 0.96), rgba(13, 17, 40, 0.96)) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  border-radius: var(--rd-r-sm) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.40) !important;
+}
+#powerupTooltip .tooltip-content h4 { color: var(--rd-cyan) !important; text-shadow: none !important; }
+#powerupTooltip .tooltip-content p { color: var(--rd-tx) !important; }
+
+/* ========================= POPGO SPLASH ============================== */
+/* Zemin index.html'de koyu gradyana çevrildi; başlık/alt yazı buna uydu */
+
+#popgo-splash .popgo-title-simple {
+  background: linear-gradient(92deg, #00eaff, #7cf7ff, #ff5c95, #ffd34d) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(0, 234, 255, 0.30)) !important;
+}
+#popgo-splash .popgo-subtitle-simple { color: var(--rd-tx2) !important; }
+#popgo-splash .icon-circle {
+  border: 1px solid var(--rd-cyan-brd) !important;
+  box-shadow: 0 8px 32px rgba(0, 234, 255, 0.25) !important;
+}
+
+/* ============================== İNCE AYAR ============================== */
+/* Buton boyutu, dokunma hedefi ve basma geri bildirimi (en sonda = kazanır) */
+
+/* Birincil butonlarda tutarlı üst-ışık (daha "kabarık" his) */
+#game-root #startScreen #startButton,
+#game-root .overlay-menu .menu-btn.primary,
+#powerBallModal .modal-ad-btn,
+#endScreen #endRestartButton {
+  box-shadow: 0 8px 22px rgba(255, 61, 127, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+/* Basma geri bildirimi: dokununca hafif küçülme */
+#game-root #startScreen #startButton:active,
+#game-root #startScreen .mode-btn:active,
+#game-root .overlay-menu .menu-btn:active,
+#game-root .overlay-menu .powerup-btn:active,
+#game-root .power-ball-bar .power-ball-btn:active,
+#powerBallModal .modal-ad-btn:active,
+#powerBallModal .modal-close-btn:active,
+#endScreen #endRestartButton:active,
+#statsModal .stats-actions button:active {
+  transform: scale(0.97) !important;
+}
+
+/* Dokunma hedefi: menü butonları en az 48px, mod kartları en az 64px */
+#game-root .overlay-menu .menu-btn { min-height: 48px !important; padding: 14px 18px !important; }
+#game-root #startScreen .mode-btn { min-height: 64px !important; }
+
+/* Başlangıç butonu: küçük ekranlarda daha dengeli boyut */
+#game-root #startScreen #startButton { font-size: 1.5rem !important; padding: 15px 50px !important; }
+
+/* İkincil menü butonlarında hafif cyan ipuçlu kenarlık (ton bütünlüğü) */
+#game-root .overlay-menu .menu-btn:not(.primary):not(.danger) {
+  border-color: rgba(0, 234, 255, 0.16) !important;
+}

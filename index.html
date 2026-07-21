@@ -32,7 +32,9 @@
         
     
     <link rel="stylesheet" href="style.css">
-    
+    <!-- Arayüz sadeleştirme katmanı (style.css'ten sonra yüklenmeli) -->
+    <link rel="stylesheet" href="redesign.css">
+
     <style>
         /* Anti-scroll protection for WebView ads */
         html, body {
@@ -137,73 +139,73 @@
                  data-full-width-responsive="true"></ins>
         </div>
 
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" role="img" aria-label="Balon patlatma oyun alanı"></canvas>
 
         <!-- Hamburger Menü -->
-        <button id="menuToggle" class="hamburger-btn">
-            <span></span>
-            <span></span>
-            <span></span>
+        <button id="menuToggle" class="hamburger-btn" aria-label="Menüyü aç" aria-expanded="false" aria-controls="overlayMenu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
         </button>
 
         <!-- Power Ball Buttons (Alt Banner Alanı) -->
-        <div id="powerBallBar" class="power-ball-bar">
-            <button id="bombBtn" class="power-ball-btn" onclick="usePowerBall('bomb')">
-                <span class="power-icon">💣</span>
-                <span class="power-count" id="bombCount">0</span>
+        <div id="powerBallBar" class="power-ball-bar" role="group" aria-label="Güç topları">
+            <button id="bombBtn" class="power-ball-btn" onclick="usePowerBall('bomb')" aria-label="Bomba gücü">
+                <span class="power-icon" aria-hidden="true">💣</span>
+                <span class="power-count" id="bombCount" aria-live="polite">0</span>
             </button>
-            
-            <button id="laserBtn" class="power-ball-btn" onclick="usePowerBall('laser')">
-                <span class="power-icon">🔷</span>
-                <span class="power-count" id="laserCount">0</span>
+
+            <button id="laserBtn" class="power-ball-btn" onclick="usePowerBall('laser')" aria-label="Lazer gücü">
+                <span class="power-icon" aria-hidden="true">🔷</span>
+                <span class="power-count" id="laserCount" aria-live="polite">0</span>
             </button>
-            
-            <button id="fireballBtn" class="power-ball-btn" onclick="usePowerBall('fireball')">
-                <span class="power-icon">🔥</span>
-                <span class="power-count" id="fireballCount">0</span>
+
+            <button id="fireballBtn" class="power-ball-btn" onclick="usePowerBall('fireball')" aria-label="Ateş topu gücü">
+                <span class="power-icon" aria-hidden="true">🔥</span>
+                <span class="power-count" id="fireballCount" aria-live="polite">0</span>
             </button>
-            
-            <button id="verticalLaserBtn" class="power-ball-btn" onclick="usePowerBall('verticalLaser')">
-                <span class="power-icon">⚡</span>
-                <span class="power-count" id="verticalLaserCount">0</span>
+
+            <button id="verticalLaserBtn" class="power-ball-btn" onclick="usePowerBall('verticalLaser')" aria-label="Dikey lazer gücü">
+                <span class="power-icon" aria-hidden="true">⚡</span>
+                <span class="power-count" id="verticalLaserCount" aria-live="polite">0</span>
             </button>
-            
-            <button id="freezeBtn" class="power-ball-btn" onclick="usePowerBall('freeze')">
-                <span class="power-icon">❄️</span>
-                <span class="power-count" id="freezeCount">0</span>
+
+            <button id="freezeBtn" class="power-ball-btn" onclick="usePowerBall('freeze')" aria-label="Dondurma gücü">
+                <span class="power-icon" aria-hidden="true">❄️</span>
+                <span class="power-count" id="freezeCount" aria-live="polite">0</span>
             </button>
-            
-            <button id="rainbowBtn" class="power-ball-btn" onclick="usePowerBall('rainbow')">
-                <span class="power-icon">🌈</span>
-                <span class="power-count" id="rainbowCount">0</span>
+
+            <button id="rainbowBtn" class="power-ball-btn" onclick="usePowerBall('rainbow')" aria-label="Gökkuşağı gücü">
+                <span class="power-icon" aria-hidden="true">🌈</span>
+                <span class="power-count" id="rainbowCount" aria-live="polite">0</span>
             </button>
         </div>
 
         <!-- Power Ball Info Modal -->
-        <div id="powerBallModal" class="power-ball-modal" style="display: none;">
+        <div id="powerBallModal" class="power-ball-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
             <div class="modal-backdrop"></div>
             <div class="modal-content">
-                <div class="modal-icon" id="modalIcon">💣</div>
+                <div class="modal-icon" id="modalIcon" aria-hidden="true">💣</div>
                 <h2 class="modal-title" id="modalTitle">BOMBA</h2>
                 <p class="modal-description" id="modalDescription">Çevresindeki tüm balonları patlatır</p>
-                
+
                 <button class="modal-ad-btn" id="modalAdBtn">
-                    <span class="btn-icon">📺</span>
+                    <span class="btn-icon" aria-hidden="true">📺</span>
                     <span class="btn-text">Reklam İzle ve Kazanın</span>
                 </button>
-                
+
                 <button class="modal-close-btn" id="modalCloseBtn">Kapat</button>
             </div>
         </div>
 
         <!-- Tam Ekran Reklam Container -->
-        <div id="interstitialAdContainer" class="interstitial-ad-container" style="display: none;">
+        <div id="interstitialAdContainer" class="interstitial-ad-container" style="display: none;" role="dialog" aria-modal="true" aria-label="Reklam">
             <div class="interstitial-content">
-                <div class="ad-close-timer">
+                <div class="ad-close-timer" aria-live="polite">
                     <span id="adTimer">5</span> saniye sonra kapatabilirsiniz
                 </div>
-                <button id="closeInterstitialAd" class="close-ad-btn" style="display: none;">
-                    <i class="fas fa-times"></i> Reklamı Kapat
+                <button id="closeInterstitialAd" class="close-ad-btn" style="display: none;" aria-label="Reklamı kapat">
+                    <i class="fas fa-times" aria-hidden="true"></i> Reklamı Kapat
                 </button>
                 <div id="interstitialAdSlot">
                     <ins class="adsbygoogle"
@@ -227,10 +229,10 @@
         <!-- Modern Hamburger Menü Sistemi -->
         <div id="gameHUD" class="game-hud">
             <!-- Ad Reward Button (Lava Ball) - Top Right Corner -->
-            <button id="adRewardBtn" class="ad-reward-button" onclick="earnLavaBallWithAd()" style="display: none;">
-                <span class="ad-icon">📺</span>
-                <span class="reward-icon">🔥</span>
-                <span class="reward-text">+1</span>
+            <button id="adRewardBtn" class="ad-reward-button" onclick="earnLavaBallWithAd()" style="display: none;" aria-label="Reklam izle, lav topu kazan">
+                <span class="ad-icon" aria-hidden="true">📺</span>
+                <span class="reward-icon" aria-hidden="true">🔥</span>
+                <span class="reward-text" aria-hidden="true">+1</span>
             </button>
             
             <!-- Top Bar with Menu Button -->
@@ -241,9 +243,9 @@
             </div>
 
             <!-- Overlay Menu -->
-            <div id="overlayMenu" class="overlay-menu">
+            <div id="overlayMenu" class="overlay-menu" role="dialog" aria-modal="true" aria-label="Oyun menüsü">
                 <div class="menu-content">
-                    <button class="close-menu" id="closeMenu">&times;</button>
+                    <button class="close-menu" id="closeMenu" aria-label="Menüyü kapat">&times;</button>
                     
                     <div class="menu-section">
                         <h3>🎮 Oyun Kontrolleri</h3>
@@ -303,15 +305,15 @@
                         <h3>⚙️ Ayarlar</h3>
                         <div class="settings-items">
                             <div class="setting-item">
-                                <label>🔊 Ses: <span id="soundValue">70</span>%</label>
-                                <input type="range" id="soundVolume" min="0" max="100" value="70">
+                                <label for="soundVolume">🔊 Ses: <span id="soundValue">70</span>%</label>
+                                <input type="range" id="soundVolume" min="0" max="100" value="70" aria-label="Ses seviyesi">
                             </div>
                             <div class="setting-item">
-                                <label>🎵 Müzik: <span id="musicValue">50</span>%</label>
-                                <input type="range" id="musicVolume" min="0" max="100" value="50">
+                                <label for="musicVolume">🎵 Müzik: <span id="musicValue">50</span>%</label>
+                                <input type="range" id="musicVolume" min="0" max="100" value="50" aria-label="Müzik seviyesi">
                             </div>
                             <div class="setting-item">
-                                <label>📳 Titreşim</label>
+                                <label for="vibrationEnabled">📳 Titreşim</label>
                                 <input type="checkbox" id="vibrationEnabled" checked>
                             </div>
                         </div>
@@ -326,19 +328,12 @@
 
         <div id="startScreen">
             <h1 class="game-title"></h1>
-            <div class="icon-container">
-                                 <div class="neon-sign">
-                     <!-- Sadece PopGo yazısı -->
-                     <div class="neon-text">
-                         <span class="letter">P</span>
-                         <span class="letter">O</span>
-                         <span class="letter">P</span>
-                         <span class="letter">G</span>
-                         <span class="letter">O</span>
-                     </div>
-                 </div>
+            <div class="popgo-hero">
+                <div class="popgo-wordmark">PopGo</div>
+                <div class="popgo-tagline">Balon Patlatma</div>
+                <div class="popgo-hs"><span class="hs-ic" aria-hidden="true">🏆</span> En yüksek · <span id="startHighScoreValue">0</span></div>
             </div>
-            
+
             <!-- Oyun Modu Seçimi -->
             <div class="game-mode-selection">
                 <h3>Oyun Modu Seç:</h3>
@@ -349,6 +344,7 @@
                             <strong>Klasik</strong>
                             <small>Sınırsız hamle</small>
                         </div>
+                        <span class="mode-check" aria-hidden="true">✓</span>
                     </button>
                     <button class="mode-btn" data-mode="strategy">
                         <span class="mode-icon">🧠</span>
@@ -356,6 +352,7 @@
                             <strong>Strateji</strong>
                             <small>60 hamle sınırı</small>
                         </div>
+                        <span class="mode-check" aria-hidden="true">✓</span>
                     </button>
                     <button class="mode-btn" data-mode="arcade">
                         <span class="mode-icon">⚡</span>
@@ -363,6 +360,7 @@
                             <strong>Arcade</strong>
                             <small>5 dakika süre</small>
                         </div>
+                        <span class="mode-check" aria-hidden="true">✓</span>
                     </button>
                 </div>
             </div>
@@ -372,7 +370,7 @@
     </div>
 
     <!-- TAM EKRAN BİTİŞ EKRANI -->
-    <div id="endScreen" class="modal-overlay" style="display:none;">
+    <div id="endScreen" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="endTitle">
         <div class="end-content">
             <h1 id="endTitle">Oyun Bitti</h1>
             <p id="endSubtitle">Skorunuz: <span id="finalScore">0</span></p>
@@ -381,9 +379,9 @@
     </div>
 
     <!-- İstatistik Modal -->
-    <div id="statsModal" class="modal-overlay" style="display:none;">
+    <div id="statsModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="statsModalTitle">
         <div class="stats-content">
-            <h2>📊 Oyuncu İstatistikleri</h2>
+            <h2 id="statsModalTitle">📊 Oyuncu İstatistikleri</h2>
             <div id="statsDetails"></div>
             <div class="stats-actions">
                 <button id="exportDataButton">📥 Verileri İndir</button>
@@ -395,33 +393,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     <script src="splash-screen.js"></script>
-    <script src="unity-ads-bridge.js"></script>
-    <script>
-        // Unity Ads Bridge'i hemen init et
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🔧 [UNITY] DOMContentLoaded - Unity Ads Bridge init başlatılıyor...');
-            console.log('🔧 [UNITY] window.UnityAdsBridge exists:', !!window.UnityAdsBridge);
-            console.log('🔧 [UNITY] window.Capacitor exists:', !!window.Capacitor);
-            console.log('🔧 [UNITY] window.Capacitor.Plugins exists:', !!window.Capacitor?.Plugins);
-            
-            // Test: HTML JavaScript çalışıyor mu?
-            console.log('🔧 [UNITY] HTML JS is working! UnityAdsBridge: ' + !!window.UnityAdsBridge);
-            
-            if (window.UnityAdsBridge) {
-                try {
-                    console.log('🔧 [UNITY] Calling UnityAdsBridge.init()...');
-                    await window.UnityAdsBridge.init();
-                    console.log('✅ [UNITY] Unity Ads Bridge init tamamlandı');
-                    console.log('✅ [UNITY] isNativeReady:', window.UnityAdsBridge.isNativeReady);
-                } catch (e) {
-                    console.error('❌ [UNITY] Unity Ads Bridge init hatası:', e);
-                }
-            } else {
-                console.error('❌ [UNITY] UnityAdsBridge bulunamadı!');
-                console.error('❌ [UNITY] Available scripts:', document.querySelectorAll('script[src]'));
-            }
-        });
-    </script>
     <script src="app.js"></script>
 
     <script>
@@ -490,7 +461,7 @@
                 left: 0;
                 width: 100vw;
                 height: 100vh;
-                background: #ffffff;
+                background: linear-gradient(160deg, #0a0d21 0%, #0d1128 100%);
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -669,6 +640,193 @@
                     .catch(err => console.error('Service Worker kaydı başarısız:', err));
             });
         }
+    </script>
+
+    <!-- 🎬 REKLAM GEÇİŞ PERDESİ: reklam öncesi/sonrası ekran sıçramasını gizler -->
+    <style>
+        #adTransitionCurtain {
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            background: linear-gradient(160deg, #0a0d21 0%, #16204a 100%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #adTransitionCurtain.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        #adTransitionCurtain .curtain-spinner {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.15);
+            border-top-color: #00eaff;
+            animation: curtainSpin 0.9s linear infinite;
+        }
+        #adTransitionCurtain .curtain-text {
+            color: #cfe3ff;
+            font-size: 14px;
+            letter-spacing: 0.4px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        @keyframes curtainSpin { to { transform: rotate(360deg); } }
+    </style>
+    <script>
+        (function () {
+            function ensureCurtain() {
+                var c = document.getElementById('adTransitionCurtain');
+                if (!c) {
+                    c = document.createElement('div');
+                    c.id = 'adTransitionCurtain';
+                    c.setAttribute('role', 'status');
+                    c.setAttribute('aria-live', 'polite');
+                    c.setAttribute('aria-hidden', 'true');
+                    c.innerHTML = '<div class="curtain-spinner" aria-hidden="true"></div>' +
+                                  '<div class="curtain-text">Reklam yükleniyor…</div>';
+                    (document.body || document.documentElement).appendChild(c);
+                }
+                return c;
+            }
+
+            var safetyTimer = null;
+            function showCurtain() {
+                var c = ensureCurtain();
+                c.classList.add('visible');
+                c.setAttribute('aria-hidden', 'false');
+                // 🔒 Güvenlik: perde hiçbir koşulda 20 sn'den fazla kalmasın (kara ekran önleme)
+                if (safetyTimer) clearTimeout(safetyTimer);
+                safetyTimer = setTimeout(hideCurtain, 20000);
+            }
+            function hideCurtain() {
+                var c = document.getElementById('adTransitionCurtain');
+                if (c) {
+                    c.classList.remove('visible');
+                    c.setAttribute('aria-hidden', 'true');
+                }
+                if (safetyTimer) { clearTimeout(safetyTimer); safetyTimer = null; }
+            }
+            window.__adCurtain = { show: showCurtain, hide: hideCurtain };
+
+            // Reklam öncesi/sonrası evrensel kancaları sarmala (app.js yüklendikten sonra)
+            function patchAdHooks() {
+                if (typeof window.saveGameStateBeforeAd === 'function' && !window.saveGameStateBeforeAd.__curtainPatched) {
+                    var origSave = window.saveGameStateBeforeAd;
+                    window.saveGameStateBeforeAd = function () {
+                        var r = origSave.apply(this, arguments);
+                        try { showCurtain(); } catch (e) {}
+                        return r;
+                    };
+                    window.saveGameStateBeforeAd.__curtainPatched = true;
+                }
+                if (typeof window.restoreGameStateAfterAd === 'function' && !window.restoreGameStateAfterAd.__curtainPatched) {
+                    var origRestore = window.restoreGameStateAfterAd;
+                    window.restoreGameStateAfterAd = function () {
+                        var r = origRestore.apply(this, arguments);
+                        // Restore sonrası kısa gecikme: canvas yeniden çizilsin, sonra perde insin
+                        setTimeout(function () { try { hideCurtain(); } catch (e) {} }, 250);
+                        return r;
+                    };
+                    window.restoreGameStateAfterAd.__curtainPatched = true;
+                }
+            }
+
+            if (document.readyState !== 'loading') patchAdHooks();
+            document.addEventListener('DOMContentLoaded', patchAdHooks);
+            window.addEventListener('load', patchAdHooks);
+        })();
+    </script>
+
+    <!-- ❓ NASIL OYNANIR: çirkin alert() yerine stilli modal -->
+    <style>
+        #htpOverlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+            opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility .25s ease}
+        #htpOverlay.visible{opacity:1;visibility:visible;pointer-events:auto}
+        #htpOverlay .htp-backdrop{position:absolute;inset:0;background:rgba(4,6,16,.82);backdrop-filter:blur(6px)}
+        #htpOverlay .htp-card{position:relative;width:88%;max-width:400px;max-height:82vh;overflow-y:auto;
+            background:linear-gradient(160deg,#111634,#0d1128);border:1px solid rgba(0,234,255,.28);border-radius:18px;
+            padding:24px 22px;box-shadow:0 24px 60px rgba(0,0,0,.6);
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#eaf2ff}
+        #htpOverlay h2{font-size:22px;margin:0 0 4px;text-align:center;color:#fff;font-weight:800;letter-spacing:.5px}
+        #htpOverlay .htp-sub{text-align:center;color:#9fb2d4;font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:18px}
+        #htpOverlay h3{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#00eaff;margin:18px 0 8px;font-weight:700}
+        #htpOverlay ul{margin:0;padding-left:18px}
+        #htpOverlay li{font-size:14px;line-height:1.55;color:#cfe0f5;margin:3px 0}
+        #htpOverlay li b{color:#eaf2ff;font-weight:700}
+        #htpOverlay .htp-close{width:100%;margin-top:22px;padding:14px;border:none;border-radius:12px;
+            background:linear-gradient(180deg,#ff5c95,#ff3d7f);color:#fff;font-size:16px;font-weight:800;cursor:pointer;
+            box-shadow:0 8px 20px rgba(255,61,127,.34)}
+    </style>
+    <script>
+        (function(){
+            function build(){
+                var o=document.getElementById('htpOverlay'); if(o) return o;
+                o=document.createElement('div'); o.id='htpOverlay';
+                o.setAttribute('role','dialog'); o.setAttribute('aria-modal','true');
+                o.setAttribute('aria-label','Nasıl oynanır'); o.setAttribute('aria-hidden','true');
+                o.innerHTML =
+                    '<div class="htp-backdrop"></div>'+
+                    '<div class="htp-card">'+
+                    '<h2>Nasıl Oynanır</h2><div class="htp-sub">PopGo · balon patlatma</div>'+
+                    '<h3>Temel oyun</h3><ul>'+
+                      '<li>Aynı renkteki balonları gruplandırıp patlat</li>'+
+                      '<li>En az <b>2</b> balon yan yana olmalı</li>'+
+                      '<li>Büyük gruplar daha fazla puan verir</li></ul>'+
+                    '<h3>Oyun modları</h3><ul>'+
+                      '<li><b>Klasik</b> — sınırsız hamle, rahat tempo</li>'+
+                      '<li><b>Strateji</b> — 60 hamle sınırı, dikkatli planla</li>'+
+                      '<li><b>Arcade</b> — 5 dakika süre, hızlı aksiyon</li></ul>'+
+                    '<h3>Puanlama</h3><ul>'+
+                      '<li>2 balon: <b>100</b> · 3 balon: <b>200</b> · 4+ balon: <b>300+</b></li>'+
+                      '<li>Combo bonusları ekstra puan</li></ul>'+
+                    '<h3>Güç-up\'lar</h3><ul>'+
+                      '<li>🎯 <b>Rainbow</b> — her renkle eşleşir</li>'+
+                      '<li>🔥 <b>Fireball</b> — geniş alan hasarı</li>'+
+                      '<li>🔷 <b>Yatay lazer</b> — satırı temizler</li>'+
+                      '<li>⚡ <b>Dikey lazer</b> — sütunu temizler</li></ul>'+
+                    '<button class="htp-close" type="button">Anladım</button>'+
+                    '</div>';
+                document.body.appendChild(o);
+                o.querySelector('.htp-backdrop').addEventListener('click', hide);
+                o.querySelector('.htp-close').addEventListener('click', hide);
+                document.addEventListener('keydown', function(e){ if(e.key==='Escape') hide(); });
+                return o;
+            }
+            function show(){ var o=build(); o.classList.add('visible'); o.setAttribute('aria-hidden','false'); }
+            function hide(){ var o=document.getElementById('htpOverlay'); if(o){ o.classList.remove('visible'); o.setAttribute('aria-hidden','true'); } }
+            function patch(){ window.showHowToPlay = show; }
+            if(document.readyState!=='loading') patch();
+            document.addEventListener('DOMContentLoaded', patch);
+            window.addEventListener('load', patch);
+            window.__howToPlay = { show: show, hide: hide };
+        })();
+    </script>
+
+    <!-- 🏆 Başlangıç ekranı en-yüksek rozeti: menüdeki #highScore'u aynalar -->
+    <script>
+        (function(){
+            function sync(){
+                var src=document.getElementById('highScore');
+                var dst=document.getElementById('startHighScoreValue');
+                if(src&&dst){ var v=(src.textContent||'').trim(); dst.textContent=v===''?'0':v; }
+            }
+            function init(){
+                sync();
+                var src=document.getElementById('highScore');
+                if(src&&window.MutationObserver){ new MutationObserver(sync).observe(src,{childList:true,characterData:true,subtree:true}); }
+            }
+            if(document.readyState!=='loading') init();
+            document.addEventListener('DOMContentLoaded', init);
+            window.addEventListener('load', init);
+        })();
     </script>
 </body>
 </html>

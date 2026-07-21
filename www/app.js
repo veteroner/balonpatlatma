@@ -59,12 +59,13 @@ const UNITY_ADS_CONFIG = {
     }
 };
 
-// 🎯 AD MEDIATION SYSTEM - Unity Ads Primary, AdMob Fallback
+// 🎯 AD MEDIATION SYSTEM - AdMob only (Unity Ads kaldırıldı)
 window.AD_MEDIATION = {
-    primaryNetwork: 'unity',
+    primaryNetwork: 'admob',
     fallbackNetwork: 'admob',
-    currentNetwork: 'unity',
+    currentNetwork: 'admob',
     networks: {
+        // Unity Ads projeden kaldırıldı; asla "available" işaretlenmez.
         unity: { available: false, initialized: false, errors: [] },
         admob: { available: false, initialized: false, errors: [] }
     },
@@ -75,19 +76,7 @@ window.AD_MEDIATION = {
 
         try {
             if (typeof window !== 'undefined') {
-                const bridge = window.UnityAdsBridge;
-                const unityReady = !!bridge && (
-                    bridge.isNativeReady === true ||
-                    bridge.isNativeReady === undefined ||
-                    typeof bridge.showRewarded === 'function' ||
-                    typeof bridge.showInterstitial === 'function' ||
-                    typeof bridge.showBanner === 'function'
-                );
-                if (unityReady && !this.networks.unity.available) {
-                    this.markAvailable('unity', true);
-                    changed = true;
-                }
-
+                // Unity Ads kaldırıldı — yalnızca AdMob tespit edilir.
                 const cap = window.Capacitor;
                 const admobPlugin = window.AdMobPlugin || cap?.Plugins?.AdMob;
                 if (admobPlugin && !this.networks.admob.available) {
