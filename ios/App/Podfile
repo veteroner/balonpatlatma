@@ -3,6 +3,9 @@ require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
 platform :ios, '15.0'
 use_frameworks!
 
+# Xcode project specification
+project 'App.xcodeproj'
+
 # workaround to avoid Xcode caching of Pods that requires
 # Product -> Clean Build Folder after new Cordova plugins installed
 # Requires CocoaPods 1.6 or newer
@@ -29,7 +32,8 @@ target 'App' do
   
   # ⚡️ PERFORMANCE FIX: Force update AdMob SDK to match Android version (23.x)
   # Old version (11.3.0) has memory leaks and slower ad loading
-  pod 'Google-Mobile-Ads-SDK', '~> 11.0'  # iOS max stable version (23.x Android parity)
+  # NOTE: @capacitor-community/admob@8.x requires Google-Mobile-Ads-SDK (~> 12.14)
+  pod 'Google-Mobile-Ads-SDK', '~> 12.14'
   
   # 🎮 Unity Ads SDK - Native implementation
   pod 'UnityAds', '~> 4.12'

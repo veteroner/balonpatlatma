@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "clean:macdots": "find . -name '._*' -delete",
     "ios:build": "npx cap build ios",
     "ios:open": "npx cap open ios",
     "ios:sync": "npx cap sync ios",
@@ -12,13 +13,14 @@
     "android:build": "npx cap build android",
     "android:open": "npx cap open android",
     "android:sync": "npx cap sync android",
+    "android:sync:clean": "npm run clean:macdots && npx cap sync android",
     "android:run": "npx cap run android"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@capacitor-community/admob": "^7.0.3",
+    "@capacitor-community/admob": "^8.0.0",
     "@capacitor/android": "^7.4.3",
     "@capacitor/app": "^7.1.0",
     "@capacitor/cli": "^7.4.3",

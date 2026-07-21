@@ -5339,34 +5339,3 @@ body.menu-open canvas#gameCanvas {
         height: 100px;
     }
 }
-
-/* =============================
-   Performance-friendly overrides
-   - Mobile: remove expensive backdrop blur
-   - Reduced motion: disable continuous animations/transitions
-   ============================= */
-
-/* Mobile/touch devices: backdrop-filter is very expensive on iOS Safari */
-@media (hover: none) and (pointer: coarse) {
-    .loader-percentage.glass,
-    .game-mode-selection,
-    .mode-btn,
-    .modal-overlay,
-    .ad-reward-button,
-    .hamburger-btn {
-        -webkit-backdrop-filter: none !important;
-        backdrop-filter: none !important;
-    }
-}
-
-/* Respect OS accessibility settings */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-    }
-}

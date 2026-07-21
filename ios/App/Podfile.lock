@@ -3,10 +3,10 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (7.1.0):
     - Capacitor
-  - CapacitorCommunityAdmob (7.0.3):
+  - CapacitorCommunityAdmob (8.0.0):
     - Capacitor
-    - Google-Mobile-Ads-SDK (= 11.3.0)
-    - GoogleUserMessagingPlatform (< 3.0.0, >= 2.7.0)
+    - Google-Mobile-Ads-SDK (~> 12.14)
+    - GoogleUserMessagingPlatform (~> 3.1)
   - CapacitorCordova (7.4.3)
   - CapacitorDevice (7.0.2):
     - Capacitor
@@ -21,10 +21,10 @@ PODS:
   - CapacitorUnityAds (1.0.0):
     - Capacitor
     - UnityAds (~> 4.12)
-  - Google-Mobile-Ads-SDK (11.3.0):
+  - Google-Mobile-Ads-SDK (12.14.0):
     - GoogleUserMessagingPlatform (>= 1.1)
-  - GoogleUserMessagingPlatform (2.7.0)
-  - UnityAds (4.16.3)
+  - GoogleUserMessagingPlatform (3.1.0)
+  - UnityAds (4.16.5)
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -37,7 +37,7 @@ DEPENDENCIES:
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - CapacitorUnityAds (from `../../node_modules/capacitor-unity-ads`)
-  - Google-Mobile-Ads-SDK (~> 11.0)
+  - Google-Mobile-Ads-SDK (~> 12.14)
   - UnityAds (~> 4.12)
 
 SPEC REPOS:
@@ -69,20 +69,20 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/capacitor-unity-ads"
 
 SPEC CHECKSUMS:
-  Capacitor: b4741ca7affb32c1b70debd03df92cbf522d8a80
-  CapacitorApp: 846d4b4a1dbb19dd1e9029c08ba6f028aa7be862
-  CapacitorCommunityAdmob: 9267ae3b473314fa65765ce4bead9a9175902ab2
+  Capacitor: 28d6c01026a9a3f7156529498ec1f389a2a28dbc
+  CapacitorApp: 26587c2ce485d88ddb39adb21cac64f8e481afe3
+  CapacitorCommunityAdmob: 9c36b466f46da413e5c105f7484e7603178c6223
   CapacitorCordova: 435121e81a2df4d0034f0fb11fcefab5104cfdb5
-  CapacitorDevice: a50a45f0d075e55e2392c7a4be5404d4f69515de
-  CapacitorHaptics: 09d96bcb5a2b74ede8fd039b4cdf58fc43dcacf1
-  CapacitorNetwork: 9b9eaeb417ec0ffa22e2bc33a4c71df10e1d6f06
-  CapacitorSplashScreen: d06ae8804808e9f649a08e7bb7f283c77b688084
-  CapacitorStatusBar: 7d8fcbd6768db014bd721d75e246590b014928e8
-  CapacitorUnityAds: 68bcc255a7ac477bd6d80c4adf152ceb6699ee47
-  Google-Mobile-Ads-SDK: 301a16c461c331ba34ff4dab40a22ab7c147af61
-  GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
-  UnityAds: 64164885dd38214bfc556eb074ab1995cc613fbf
+  CapacitorDevice: 81ae78d5d1942707caad79276badd458bf6ec603
+  CapacitorHaptics: b3fb2869e72c4466e18ce9ccbeb60a3d8723b3d4
+  CapacitorNetwork: 695069886b3c5ed514db69aa3d026b8dc3c03a6b
+  CapacitorSplashScreen: e388b8e0ed0e982a9d3a40417f478e7a018a8763
+  CapacitorStatusBar: 0659ddc7b1713764a05831463d215b177a15d054
+  CapacitorUnityAds: edbfc9f18a4398b5fe25f9f333948473310edeac
+  Google-Mobile-Ads-SDK: 4534fd2dfcd3f705c5485a6633c5188d03d4eed2
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
+  UnityAds: 8b9e0ecf7c4aa7334d15f81efb58db279e28f502
 
-PODFILE CHECKSUM: c26afb99ac35998e08b7eb8a872e99c71eab23dd
+PODFILE CHECKSUM: e9688404abf1407fa6ce41b80cc6f64d7eea776f
 
 COCOAPODS: 1.16.2

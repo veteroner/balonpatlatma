@@ -25,10 +25,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UnityAdsInitializationDel
         // Initialize Google Mobile Ads SDK - PRODUCTION MODE
         // No test devices - using real ads
         
-        GADMobileAds.sharedInstance().start(completionHandler: { _ in
-            print("✅ GADMobileAds.start() completed successfully (PRODUCTION MODE)")
+        MobileAds.shared.start(completionHandler: { _ in
+            print("✅ MobileAds.start() completed successfully (PRODUCTION MODE)")
         })
-        print("✅ GADMobileAds.start() called in AppDelegate (PRODUCTION MODE - Real Ads)")
+        print("✅ MobileAds.start() called in AppDelegate (PRODUCTION MODE - Real Ads)")
         
         // 🎮 Initialize Unity Ads SDK - PRODUCTION MODE
         UnityAds.initialize("5970926", testMode: false, initializationDelegate: self)

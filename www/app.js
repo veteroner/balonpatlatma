@@ -6100,6 +6100,9 @@ function gameLoop(currentTime = 0) {
     // Prevent multiple loops running simultaneously
     if (gameLoopRunning) return;
     gameLoopRunning = true;
+    let shouldContinue = true;
+    
+    try {
     
     // 🔥 CRITICAL: Her frame'de canvas boyutlarını kontrol et
     // Reklam sonrası bozulma varsa düzelt
@@ -6147,8 +6150,6 @@ function gameLoop(currentTime = 0) {
 
     // Level complete: skip simulation, just render frame
     if (gameState === 'levelcomplete') {
-        gameLoopRunning = false;
-        requestAnimationFrame(gameLoop);
         return;
     }
 
@@ -6160,7 +6161,7 @@ function gameLoop(currentTime = 0) {
             soundManager.play('gameOver');
             gameState = 'gameover';
             showEndScreen('lose');
-            gameLoopRunning = false;
+            shouldContinue = false;
             return;
         }
     }
@@ -6225,8 +6226,14 @@ function gameLoop(currentTime = 0) {
         ctx.fillRect(0, 0, logicalWidth, logicalHeight);
     }
 
-    gameLoopRunning = false;
-    requestAnimationFrame(gameLoop);
+    } catch (err) {
+        try { console.warn('⚠️ [GAMELOOP] Unhandled error:', err); } catch (_) {}
+    } finally {
+        gameLoopRunning = false;
+        if (shouldContinue && (gameState === 'playing' || gameState === 'levelcomplete')) {
+            try { requestAnimationFrame(gameLoop); } catch (_) {}
+        }
+    }
 }
 
 function drawGameInfo() {
@@ -8423,8 +8430,10 @@ try {
 } catch (_) { /* ignore */ }
 
 function updateBubblePosition() {
-    // ✅ FIXED TIME STEP - Tutarlı balon hareketi için sabit delta time
-    const dt = 1/60; // Sabit 60 FPS, çok smooth ve tutarlı
+    // ✅ TIME-BASED STEP - FPS bağımlı hızlanma/yavaşlamayı engelle
+    // deltaTime gameLoop içinde hesaplanıyor (saniye cinsinden)
+    const dtRaw = (typeof deltaTime === 'number' && isFinite(deltaTime)) ? deltaTime : (1 / 60);
+    const dt = Math.min(Math.max(dtRaw, 1 / 120), 1 / 30); // 120fps..30fps aralığında clamp
     
     currentBubble.x += currentBubble.vx * dt;
     currentBubble.y += currentBubble.vy * dt;
@@ -10056,12 +10065,38 @@ function advanceBubbles() {
     
     // Otomatik lava tüketimi kaldırıldı; oyuncu manuel seçecek
     nextBubble = createBubble(shooterX - BUBBLE_RADIUS * 4, shooterY);
-    updateAimPath();
+    updateAimPath(true);
     tryApplyPendingShooterPowerup('advance');
 }
 
-function updateAimPath() {
+let _aimPathLastCalcAt = 0;
+let _aimPathLastAngle = null;
+let _aimPathLastX = null;
+let _aimPathLastY = null;
+
+function updateAimPath(force = false) {
     if (!currentBubble) return;
+    if (currentBubble.isMoving) return;
+
+    // Throttle expensive recomputation (aimPath can be called from high-frequency move events)
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const angleNow = currentBubble.angle;
+    const xNow = currentBubble.x;
+    const yNow = currentBubble.y;
+    if (!force && _aimPathLastCalcAt) {
+        const dtMs = now - _aimPathLastCalcAt;
+        const angleDiff = (_aimPathLastAngle === null) ? Infinity : Math.abs(angleNow - _aimPathLastAngle);
+        const moved = (_aimPathLastX === null) ? Infinity : Math.hypot(xNow - _aimPathLastX, yNow - _aimPathLastY);
+        // ~30fps throttle unless angle/pos changed meaningfully
+        if (dtMs < 33 && angleDiff < 0.002 && moved < 0.75) {
+            return;
+        }
+    }
+    _aimPathLastCalcAt = now;
+    _aimPathLastAngle = angleNow;
+    _aimPathLastX = xNow;
+    _aimPathLastY = yNow;
+
     aimPath = [];
     let x = currentBubble.x;
     let y = currentBubble.y;
@@ -10089,8 +10124,22 @@ function updateAimPath() {
         }
 
         let hit = false;
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
+        // PERF: only scan nearby grid cells for collision
+        const rApprox = Math.round((y - gridOffsetY) / ROW_HEIGHT);
+        const rSafe = Math.max(0, Math.min(ROWS - 1, rApprox));
+        const cOffset = (rSafe % 2 !== 0) ? BUBBLE_RADIUS : 0;
+        const cApprox = Math.round((x - gridOffsetX - cOffset) / (BUBBLE_RADIUS * 2));
+        const maxCForRow = (rSafe % 2 !== 0) ? (COLS - 2) : (COLS - 1);
+        const cSafe = Math.max(0, Math.min(maxCForRow, cApprox));
+        const rMin = Math.max(0, rSafe - 3);
+        const rMax = Math.min(ROWS - 1, rSafe + 3);
+
+        for (let r = rMin; r <= rMax; r++) {
+            if (!grid[r]) continue;
+            const maxC = (r % 2 !== 0) ? (COLS - 2) : (COLS - 1);
+            const cMin = Math.max(0, cSafe - 4);
+            const cMax = Math.min(maxC, cSafe + 4);
+            for (let c = cMin; c <= cMax; c++) {
                 if (grid[r][c]) {
                     const bubbleCoords = getBubbleCoords(r, c);
                     if (Math.hypot(x - bubbleCoords.x, y - bubbleCoords.y) < BUBBLE_RADIUS * 2) {

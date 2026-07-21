@@ -221,7 +221,6 @@ body {
     justify-content: center;
     margin-top: 30px;
     overflow: hidden; /* Taşmayı engelle */
-    -webkit-backdrop-filter: none;
     backdrop-filter: none;
     border: 1.5px solid #e3e6f3;
     z-index: 1; /* Düşük z-index */
@@ -291,7 +290,6 @@ body {
     min-width: 60px;
     max-width: 80px;
     border: 1.5px solid #e3e6f3;
-    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     animation: glassFadeInFixed 1.2s;
     text-shadow: none;
@@ -332,7 +330,6 @@ body {
     box-shadow: none;
     min-width: 60px;
     border: 1.5px solid #e3e6f3;
-    -webkit-backdrop-filter: none;
     backdrop-filter: none;
     animation: glassFadeIn 1.2s;
 }
@@ -495,10 +492,8 @@ body {
 html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
-    /* iOS/WKWebView güvenli tam ekran */
-    min-height: 100dvh;
+    width: 100vw;
+    height: 100vh;
     overflow: hidden;
     font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: linear-gradient(135deg, #0F0F23 0%, #1A1A3A 25%, #2D1B69 50%, #1A1A3A 75%, #0F0F23 100%); /* Koyu uzay gradyanı */
@@ -831,7 +826,6 @@ html, body {
     padding: 20px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
@@ -861,7 +855,6 @@ html, body {
     cursor: pointer;
     transition: all 0.3s ease;
     min-width: 120px;
-    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -1198,7 +1191,6 @@ html, body {
     justify-content: center;
     align-items: center;
     z-index: 2000;
-    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 .end-content {
@@ -1357,7 +1349,6 @@ html, body {
                 inset 0 1px 6px rgba(255, 255, 255, 0.3);
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     animation: pulseGlow 2s infinite;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -1420,64 +1411,61 @@ html, body {
 }
 
 .top-bar {
-    display: none; /* Hamburger menü power ball bar içinde */
+    display: none; /* Gereksiz - hamburger menü doğrudan canvas içinde */
 }
 
-/* Hamburger menü - 3 çizgili stil ama power ball bar içinde */
 .hamburger-btn {
-    display: none; /* Kullanılmıyor */
-}
-
-/* Power ball bar içindeki hamburger menü */
-.hamburger-in-bar {
-    position: relative;
-    transform: scale(1.15);
-    transition: transform 0.3s ease;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(213, 0, 249, 0.3));
+    border: 2px solid rgba(0, 212, 255, 0.6);
+    border-radius: 50%;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-}
-
-.hamburger-in-bar:hover {
-    transform: scale(1.25);
-}
-
-.hamburger-in-bar .hamburger-lines {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 3px;
-    width: 100%;
-}
-
-.hamburger-in-bar .hamburger-lines span {
-    width: 20px;
-    height: 2.5px;
-    background: linear-gradient(90deg, #00eaff, #7b1fa2);
-    border-radius: 2px;
+    justify-content: space-around;
+    width: 50px; /* Küçültüldü */
+    height: 50px; /* Küçültüldü */
+    padding: 10px; /* Küçültüldü */
+    z-index: 2000 !important;
     transition: all 0.3s ease;
-    box-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    position: absolute;
+    top: 45px; /* 15px'ten 45px'e çıkarıldı */
+    right: 15px; /* Küçültüldü */
+    pointer-events: auto !important;
 }
 
-.hamburger-in-bar:hover .hamburger-lines span {
-    box-shadow: 0 0 15px rgba(0, 234, 255, 0.8);
+.hamburger-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.5), rgba(213, 0, 249, 0.5));
+    border-color: rgba(0, 212, 255, 0.8);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
 }
 
-.hamburger-in-bar .menu-text {
-    font-size: 9px;
-    font-weight: bold;
-    color: #00eaff;
-    text-shadow: 0 0 5px rgba(0, 234, 255, 0.6);
-    margin-top: 2px;
-    letter-spacing: 0.5px;
+.hamburger-btn span {
+    display: block;
+    height: 4px; /* Küçültüldü */
+    width: 100%;
+    background: linear-gradient(90deg, #00D4FF, #D500F9);
+    border-radius: 2px; /* Küçültüldü */
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
 }
 
-.hamburger-in-bar:hover .menu-text {
-    text-shadow: 0 0 10px rgba(0, 234, 255, 1);
+.hamburger-btn.active span:nth-child(1) {
+    transform: rotate(-45deg) translate(-6px, 6px);
 }
+
+.hamburger-btn.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-btn.active span:nth-child(3) {
+    transform: rotate(45deg) translate(-6px, -6px);
+}
+
+/* Menü açıkken hamburger butonunu gizle, sadece kapatma tuşu kalsın */
+body.menu-open .hamburger-btn { display: none; }
 
 .score-display {
     color: #00eaff;
@@ -1500,7 +1488,6 @@ html, body {
     border: 2px solid #00eaff;
     border-radius: 12px;
     padding: 12px 16px;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px rgba(0, 234, 255, 0.3);
 }
@@ -1539,7 +1526,6 @@ html, body {
     width: 100%;
     height: 100%;
     background: rgba(15, 15, 35, 0.95);
-    -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1621,7 +1607,6 @@ body.menu-open canvas#gameCanvas {
     background: rgba(0, 212, 255, 0.08);
     border-radius: 15px;
     border: 1px solid rgba(0, 212, 255, 0.2);
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
@@ -1670,7 +1655,6 @@ body.menu-open canvas#gameCanvas {
     justify-content: center;
     gap: 12px;
     transition: all 0.3s ease;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     position: relative;
@@ -1737,7 +1721,6 @@ body.menu-open canvas#gameCanvas {
     align-items: center;
     gap: 12px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
 }
@@ -2254,14 +2237,14 @@ body.menu-open canvas#gameCanvas {
 @media (max-width: 768px) {
     /* Body ve html'e safe area ekle - alt boşluk kaldırıldı */
     html, body {
-        padding: 0 !important;
+        padding: 5px !important;
         margin-bottom: 0 !important;
     }
     
     /* Çok küçük ekranlar için */
     @media (max-width: 480px) {
         html, body {
-            padding: 0 !important;
+            padding: 2px !important;
         }
         
         #gameCanvas {
@@ -3204,7 +3187,6 @@ body.menu-open canvas#gameCanvas {
     width: 100vw;
     height: 100vh;
     background: linear-gradient(135deg, rgba(15, 25, 50, 0.95), rgba(25, 35, 70, 0.95));
-    -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
     display: flex;
     align-items: center;
@@ -4221,7 +4203,6 @@ body.menu-open canvas#gameCanvas {
     padding: 15px 20px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -4316,7 +4297,6 @@ body.menu-open canvas#gameCanvas {
     background: rgba(255, 255, 255, 0.2);
     padding: 8px 12px;
     border-radius: 20px;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -4415,7 +4395,6 @@ body.menu-open canvas#gameCanvas {
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -4989,7 +4968,6 @@ body.menu-open canvas#gameCanvas {
     right: 0;
     height: 80px;
     background: linear-gradient(180deg, rgba(20, 20, 40, 0.95) 0%, rgba(10, 10, 30, 0.98) 100%);
-    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-top: 2px solid rgba(100, 200, 255, 0.3);
     display: flex;
@@ -5108,19 +5086,6 @@ body.menu-open canvas#gameCanvas {
     filter: drop-shadow(0 0 8px rgba(255, 0, 255, 0.8));
 }
 
-#verticalLaserBtn .power-icon {
-    animation: verticalLaserGlow 2s ease-in-out infinite;
-}
-
-@keyframes verticalLaserGlow {
-    0%, 100% { 
-        filter: drop-shadow(0 0 8px rgba(0, 234, 255, 0.8)) drop-shadow(0 0 15px rgba(0, 234, 255, 0.4));
-    }
-    50% { 
-        filter: drop-shadow(0 0 15px rgba(0, 234, 255, 1)) drop-shadow(0 0 25px rgba(0, 234, 255, 0.6)) drop-shadow(0 0 35px rgba(0, 234, 255, 0.3));
-    }
-}
-
 #fireballBtn .power-icon {
     filter: drop-shadow(0 0 8px rgba(255, 50, 50, 0.8));
 }
@@ -5171,7 +5136,6 @@ body.menu-open canvas#gameCanvas {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.8);
-    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -5373,5 +5337,36 @@ body.menu-open canvas#gameCanvas {
     .power-ball-bar {
         gap: 20px;
         height: 100px;
+    }
+}
+
+/* =============================
+   Performance-friendly overrides
+   - Mobile: remove expensive backdrop blur
+   - Reduced motion: disable continuous animations/transitions
+   ============================= */
+
+/* Mobile/touch devices: backdrop-filter is very expensive on iOS Safari */
+@media (hover: none) and (pointer: coarse) {
+    .loader-percentage.glass,
+    .game-mode-selection,
+    .mode-btn,
+    .modal-overlay,
+    .ad-reward-button,
+    .hamburger-btn {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+/* Respect OS accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
     }
 }
