@@ -1943,6 +1943,8 @@ const TARGET_FPS = 60;
 const FRAME_TIME = 1000 / TARGET_FPS; // 16.67ms per frame
 let lastFrameTime = 0;
 let deltaTime = 1/60; // Simple delta time, no smoothing
+let realDeltaTime = 1/60; // Kısıtlanmamış gerçek kare süresi (mermi hareketi için)
+let _shotAccumulator = 0; // Sabit-adım fizik birikimcisi (mermi)
 let gameLoopRunning = false; // Prevent multiple game loops
 
 // Simplified speed multipliers
@@ -6132,8 +6134,11 @@ function gameLoop(currentTime = 0) {
     if (lastFrameTime === 0) {
         lastFrameTime = currentTime;
         deltaTime = 1/60; // Use fixed timestep for first frame
+        realDeltaTime = 1/60;
     } else {
-        deltaTime = Math.min((currentTime - lastFrameTime) / 1000, 1/30); // Cap at 30 FPS minimum
+        const rawSec = (currentTime - lastFrameTime) / 1000;
+        deltaTime = Math.min(rawSec, 1/30); // Timers/efektler için kısıtlı (değişmedi)
+        realDeltaTime = Math.min(rawSec, 0.25); // Mermi için GERÇEK süre (arka plandan dönüşte 0.25s tavan)
         lastFrameTime = currentTime;
     }
 
@@ -6171,10 +6176,19 @@ function gameLoop(currentTime = 0) {
 
     // Update game objects
     if (currentBubble && currentBubble.isMoving) {
-        updateBubblePosition();
-        
+        // 🚀 Sabit-adım birikimci: mermi HER fps'te gerçek hızda ilerler + tünelleme yok.
+        // (Eski kod dt'yi 1/30'a kısıp düşük fps'te topu ağır çekime sokuyordu -> "havada asılı kalma")
+        _shotAccumulator += realDeltaTime;
+        const FIXED_STEP = 1/120;
+        let _steps = 0;
+        while (_shotAccumulator >= FIXED_STEP && currentBubble && currentBubble.isMoving && _steps < 60) {
+            updateBubblePosition(FIXED_STEP);
+            _shotAccumulator -= FIXED_STEP;
+            _steps++;
+        }
+
         // Reduced particle effects for better performance
-        if (currentBubble.type === POWERUP_TYPES.FIREBALL && Math.random() < 0.3) {
+        if (currentBubble && currentBubble.type === POWERUP_TYPES.FIREBALL && Math.random() < 0.3) {
             createTrailParticles(currentBubble.x, currentBubble.y, currentBubble.color);
         }
     }
@@ -7272,6 +7286,43 @@ function drawBubble(x, y, radius, color, type) {
         ctx.fill();
         
     } else {
+        // 🚀 PERF: Normal balon sprite önbelleğinden çizilir.
+        // Eski yol her karede 3 iç fonksiyon + 3 createRadialGradient +
+        // shadowBlur(15) çalıştırıyordu (~26 balon × kare) — yazılım
+        // render'da tek balon çizimi 97ms'e sıçrayabiliyordu. Artık
+        // (renk|yarıçap) başına BİR KEZ offscreen'e çizilir, sonra drawImage.
+        drawPlainBubbleCached(ctx, x, y, radius, color);
+    }
+    
+    ctx.restore();
+}
+
+// ==== Normal balon sprite önbelleği (görsel birebir aynı) ====
+const __plainBubbleCache = new Map();
+const __PLAIN_BUBBLE_PAD = 18; // shadowBlur(15) taşması için pay
+
+function drawPlainBubbleCached(targetCtx, x, y, radius, color) {
+    const r = Math.max(1, Math.round(radius));
+    const key = color + '|' + r;
+    let sprite = __plainBubbleCache.get(key);
+    if (!sprite) {
+        if (__plainBubbleCache.size > 96) __plainBubbleCache.clear(); // sınırsız büyüme koruması
+        const pad = __PLAIN_BUBBLE_PAD;
+        const size = (r + pad) * 2;
+        const dpr = window.devicePixelRatio || 1;
+        const off = document.createElement('canvas');
+        off.width = Math.ceil(size * dpr);
+        off.height = Math.ceil(size * dpr);
+        const g = off.getContext('2d');
+        g.scale(dpr, dpr);
+        __paintPlainBubble(g, r + pad, r + pad, r, color);
+        sprite = { canvas: off, size: size, half: r + pad };
+        __plainBubbleCache.set(key, sprite);
+    }
+    targetCtx.drawImage(sprite.canvas, x - sprite.half, y - sprite.half, sprite.size, sprite.size);
+}
+
+function __paintPlainBubble(ctx, x, y, radius, color) {
         // Normal balon - Gelişmiş 3D efekti (chroma olmadan)
         
         // Renk değerlerini parse et
@@ -7354,10 +7405,8 @@ function drawBubble(x, y, radius, color, type) {
         ctx.beginPath();
         ctx.arc(x, y, radius - 2, 0, Math.PI * 2);
         ctx.stroke();
-    }
-    
-    ctx.restore();
 }
+
 
 // --- MOBİL UI FONKSİYONLARI ---
 // ========== TAB MENÜ FONKSİYONLARI ==========
@@ -8111,6 +8160,7 @@ function onMouseDown(e) {
     soundManager.play('shoot');
     
     currentBubble.isMoving = true;
+    _shotAccumulator = 0; // yeni atış: birikimciyi sıfırla
     currentBubble.vx = Math.cos(currentBubble.angle) * CURRENT_SHOOTER_SPEED;
     currentBubble.vy = Math.sin(currentBubble.angle) * CURRENT_SHOOTER_SPEED;
     
@@ -8418,12 +8468,14 @@ try {
     console.log('✅ Bound touch handlers to window');
 } catch (_) { /* ignore */ }
 
-function updateBubblePosition() {
-    // ✅ TIME-BASED STEP - FPS bağımlı hızlanma/yavaşlamayı engelle
-    // deltaTime gameLoop içinde hesaplanıyor (saniye cinsinden)
-    const dtRaw = (typeof deltaTime === 'number' && isFinite(deltaTime)) ? deltaTime : (1 / 60);
-    const dt = Math.min(Math.max(dtRaw, 1 / 120), 1 / 30); // 120fps..30fps aralığında clamp
-    
+function updateBubblePosition(stepDt) {
+    if (!currentBubble || !currentBubble.isMoving) return;
+    // ✅ SABİT ALT-ADIM: gameLoop birikimciden FIXED_STEP (1/120s) geçirir.
+    // Böylece mermi gerçek hızda ilerler (fps'ten bağımsız) ve tünelleme olmaz.
+    const dt = (typeof stepDt === 'number' && isFinite(stepDt) && stepDt > 0)
+        ? stepDt
+        : Math.min(Math.max((typeof deltaTime === 'number' && isFinite(deltaTime)) ? deltaTime : (1/60), 1/120), 1/30);
+
     currentBubble.x += currentBubble.vx * dt;
     currentBubble.y += currentBubble.vy * dt;
 
