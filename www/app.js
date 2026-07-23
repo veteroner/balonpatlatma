@@ -1945,6 +1945,7 @@ let lastFrameTime = 0;
 let deltaTime = 1/60; // Simple delta time, no smoothing
 let realDeltaTime = 1/60; // Kısıtlanmamış gerçek kare süresi (mermi hareketi için)
 let _shotAccumulator = 0; // Sabit-adım fizik birikimcisi (mermi)
+let _fallAccumulator = 0; // Sabit-adım fizik birikimcisi (düşen toplar)
 let gameLoopRunning = false; // Prevent multiple game loops
 
 // Simplified speed multipliers
@@ -6194,7 +6195,17 @@ function gameLoop(currentTime = 0) {
     }
     
     if (fallingBubbles.length > 0) {
-        updateFallingBubbles();
+        // 🚀 Sabit-adım: düşen toplar HER fps'te gerçek hızda düşer (yavaş cihazda takılmaz)
+        _fallAccumulator += realDeltaTime;
+        const FALL_STEP = 1/120;
+        let _fsteps = 0;
+        while (_fallAccumulator >= FALL_STEP && fallingBubbles.length > 0 && _fsteps < 60) {
+            updateFallingBubbles(FALL_STEP);
+            _fallAccumulator -= FALL_STEP;
+            _fsteps++;
+        }
+    } else {
+        _fallAccumulator = 0;
     }
     
     updateParticles();
@@ -9082,9 +9093,10 @@ function handleFloatingBubbles() {
     }
 }
 
-function updateFallingBubbles() {
-    // ✅ FIXED TIME STEP - Tamamen tutarlı fizik için sabit delta time
-    const dt = 1/60; // Sabit 60 FPS, çok smooth ve tutarlı
+function updateFallingBubbles(stepDt) {
+    // ✅ SABİT ALT-ADIM: gameLoop birikimciden FALL_STEP geçirir (gerçek hız, fps'ten bağımsız)
+    // Eski sabit 1/60, düşük fps'te düşen topları ağır çekime sokuyordu -> "düşerken takılma"
+    const dt = (typeof stepDt === 'number' && isFinite(stepDt) && stepDt > 0) ? stepDt : 1/60;
     
     // 🔥 PERFORMANCE: Aggressively clean off-screen bubbles
     if (fallingBubbles.length > 50) {
@@ -9199,7 +9211,7 @@ function updateFallingBubbles() {
                     
                     debugLog('gameplay', `🎯 Top deliğe girdi! Puan: ${bucket.score}`);
                 } else {
-                    console.log(`💔 Top deliklere giremedi, kayboldu`);
+                    debugLog('gameplay', `💔 Top deliklere giremedi, kayboldu`);
                 }
                 fallingBubbles.splice(i, 1);
             }

@@ -74,6 +74,18 @@
   border: 1px solid var(--rd-glass-brd) !important;
   border-radius: var(--rd-r) !important;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important;
+  /* Ekrana uyumlu (responsive): genişlik ekranın %92'si, tavan 440px, ortalı */
+  width: 92% !important;
+  max-width: 440px !important;
+  margin: 14px auto !important;
+  padding: 16px 14px !important;
+  box-sizing: border-box !important;
+}
+/* Başlangıç ekranı genel: dikeyde taşarsa kaydırılabilir, ortalı, ekran dostu */
+#game-root #startScreen {
+  overflow-y: auto !important;
+  padding: 20px 12px !important;
+  box-sizing: border-box !important;
 }
 #game-root #startScreen .game-mode-selection h3 {
   color: var(--rd-tx2) !important;
@@ -85,10 +97,17 @@
 }
 
 /* Mod satırları: dikey liste (ikon + bilgi + seçim işareti) */
+/* NOT: legacy kural container'ı display:grid yapıyordu; flex'e zorluyoruz ki
+   flex-direction:column geçerli olsun (yoksa grid 2+1 diziyordu). */
 #game-root #startScreen .mode-buttons {
+  display: flex !important;
   flex-direction: column !important;
   flex-wrap: nowrap !important;
+  align-items: stretch !important;
   gap: 10px !important;
+  width: 100% !important;
+  max-width: 420px !important;
+  margin: 0 auto !important;
 }
 #game-root #startScreen .mode-btn {
   flex-direction: row !important;
