@@ -8732,11 +8732,11 @@ function snapBubbleToGrid() {
     // Grid pozisyonu geçerli mi kontrol et - odd row'larda bir sütun daha az kullanılır
     const maxC = isOddRow(r) ? COLS - 2 : COLS - 1;
     
-    console.log(`📍 snapBubbleToGrid: bubble pos=(${currentBubble.x.toFixed(1)}, ${currentBubble.y.toFixed(1)}), grid pos=(${r}, ${c}), maxC=${maxC}, isOdd=${isOddRow(r)}`);
+    debugLog('gameplay', `📍 snapBubbleToGrid: bubble pos=(${currentBubble.x.toFixed(1)}, ${currentBubble.y.toFixed(1)}), grid pos=(${r}, ${c}), maxC=${maxC}, isOdd=${isOddRow(r)}`);
     
     // Eğer hesaplanan pozisyon grid sınırları dışındaysa, daha akıllı bir düzeltme yap
     if (c > maxC) {
-        console.log(`⚠️ Sağ sınır düzeltmesi: c=${c} -> ${maxC}, r=${r}`);
+        debugLog('gameplay', `⚠️ Sağ sınır düzeltmesi: c=${c} -> ${maxC}, r=${r}`);
         // Önce sağ sınırda boş yer var mı kontrol et
         if (!rowRef[maxC]) {
             c = maxC;
@@ -8744,7 +8744,7 @@ function snapBubbleToGrid() {
             // Sağ sınır doluysa, daha sol tarafta boş yer ara
             for (let testC = maxC - 1; testC >= 0; testC--) {
                 if (!rowRef[testC]) {
-                    console.log(`✅ Sağ sınır dolu, alternatif pozisyon bulundu: c=${testC}`);
+                    debugLog('gameplay', `✅ Sağ sınır dolu, alternatif pozisyon bulundu: c=${testC}`);
                     c = testC;
                     break;
                 }
@@ -8752,7 +8752,7 @@ function snapBubbleToGrid() {
         }
     }
     if (c < 0) {
-        console.log(`⚠️ Sol sınır düzeltmesi: c=${c} -> 0, r=${r}`);
+        debugLog('gameplay', `⚠️ Sol sınır düzeltmesi: c=${c} -> 0, r=${r}`);
         // Önce sol sınırda boş yer var mı kontrol et
         if (!rowRef[0]) {
             c = 0;
@@ -8760,7 +8760,7 @@ function snapBubbleToGrid() {
             // Sol sınır doluysa, daha sağ tarafta boş yer ara
             for (let testC = 1; testC <= maxC; testC++) {
                 if (!rowRef[testC]) {
-                    console.log(`✅ Sol sınır dolu, alternatif pozisyon bulundu: c=${testC}`);
+                    debugLog('gameplay', `✅ Sol sınır dolu, alternatif pozisyon bulundu: c=${testC}`);
                     c = testC;
                     break;
                 }
@@ -8770,7 +8770,7 @@ function snapBubbleToGrid() {
     
     // Grid array'i sınırları da kontrol et
     if (!rowRef) {
-        console.log(`❌ Grid satır hatası: r=${r}, grid[r]=${grid[r]}`);
+        debugLog('gameplay', `❌ Grid satır hatası: r=${r}, grid[r]=${grid[r]}`);
         console.warn('⚠️ Grid bozuk, güvenli pozisyon seçiliyor...');
         r = Math.min(ROWS - 1, Math.max(0, r));
         c = Math.floor(COLS / 2);
@@ -8779,7 +8779,7 @@ function snapBubbleToGrid() {
     
     // Grid array sınırlarını kontrol et - ama odd row'larda daha az sütun kullanıldığını unutma
     if (c >= rowRef.length) {
-        console.log(`❌ Grid sütun hatası: c=${c} >= grid[${r}].length=${rowRef.length}`);
+        debugLog('gameplay', `❌ Grid sütun hatası: c=${c} >= grid[${r}].length=${rowRef.length}`);
         soundManager.play('gameOver');
         gameState = 'gameover';
         showEndScreen('lose');
@@ -8808,11 +8808,11 @@ function snapBubbleToGrid() {
                 targetC = foundC;
             } else {
                 // O satır tamamen doluysa, mevcut davranışı koru: aynı hücrede bırak (ileride game over tetiklenebilir)
-                console.log(`⚠️ Alt satır tamamen dolu: r=${targetR}. Daha fazla arama yapılmadı.`);
+                debugLog('gameplay', `⚠️ Alt satır tamamen dolu: r=${targetR}. Daha fazla arama yapılmadı.`);
             }
         }
 
-        console.log(`⬇️ Dolu hücre, alt sıraya yerleştiriliyor: (${r},${c}) -> (${targetR},${targetC})`);
+        debugLog('gameplay', `⬇️ Dolu hücre, alt sıraya yerleştiriliyor: (${r},${c}) -> (${targetR},${targetC})`);
         r = targetR;
         c = targetC;
         rowRef = ensureGridRow(r);
@@ -8835,7 +8835,7 @@ function snapBubbleToGrid() {
     // Eğer pozisyon değiştirildiyse, görsel geri bildirim ver
     const originalPos = getGridPosFromCoords(currentBubble.x, currentBubble.y);
     if (originalPos.r !== r || originalPos.c !== c) {
-        console.log(`🎯 Balon yeniden konumlandırıldı: (${originalPos.r}, ${originalPos.c}) -> (${r}, ${c})`);
+        debugLog('gameplay', `🎯 Balon yeniden konumlandırıldı: (${originalPos.r}, ${originalPos.c}) -> (${r}, ${c})`);
         // Pozisyon değişikliği için özel efekt
         const coords = getBubbleCoords(r, c);
         createParticles(coords.x, coords.y, currentBubble.color, 5, 'explosion');
@@ -8896,7 +8896,7 @@ function snapBubbleToGrid() {
             trackBubblePop(cluster.length);
             
             successfulShot = true;
-            console.log(`🎯 Normal küme patladı: ${cluster.length} balon, successfulShot: ${successfulShot}`);
+            debugLog('gameplay', `🎯 Normal küme patladı: ${cluster.length} balon, successfulShot: ${successfulShot}`);
             
             // Combo bonusu kontrol
             if (cluster.length >= 5) {
@@ -8948,15 +8948,15 @@ function snapBubbleToGrid() {
     // Streak ve lava balonu stoğu güncelle
     if (successfulShot) {
         streakCount++;
-        console.log(`✅ Başarılı atış! streakCount: ${streakCount}, lavaStock: ${lavaStock}`);
+        debugLog('gameplay', `✅ Başarılı atış! streakCount: ${streakCount}, lavaStock: ${lavaStock}`);
         if (streakCount >= 4) { // 5'ten 4'e düşürüldü
             // Birincil ödül: 4 ardışık isabet = 1 lava
             lavaStock++;
-            console.log(`🔥 Lava balonu kazandınız! Yeni lavaStock: ${lavaStock}`);
+            debugLog('gameplay', `🔥 Lava balonu kazandınız! Yeni lavaStock: ${lavaStock}`);
             // Ek bonus: 8 ardışık isabet = +1 ek lava (toplam +2)
             if (streakCount >= 8) { // 10'dan 8'e düşürüldü
                 lavaStock++;
-                console.log(`🔥🔥 Bonus lava! Yeni lavaStock: ${lavaStock}`);
+                debugLog('gameplay', `🔥🔥 Bonus lava! Yeni lavaStock: ${lavaStock}`);
             }
             // Streaki devam ettirmek yerine 0 yerine kalan değeri koru (örn. 6 -> 2)
             streakCount %= 4; // 5'ten 4'e düşürüldü
@@ -8999,16 +8999,16 @@ function snapBubbleToGrid() {
     // Oyun bitişi: Balonlar alt sınıra (BOTTOM_MARGIN) çok yaklaştı mı?
     const gameOverThreshold = logicalHeight - BOTTOM_MARGIN - BUBBLE_RADIUS * 2;
     
-    console.log(`🔍 Game Over Check: lowestBubbleY=${lowestBubbleY.toFixed(1)}, threshold=${gameOverThreshold.toFixed(1)}`);
+    debugLog('gameplay', `🔍 Game Over Check: lowestBubbleY=${lowestBubbleY.toFixed(1)}, threshold=${gameOverThreshold.toFixed(1)}`);
     
     if (lowestBubbleY >= gameOverThreshold) {
         // Eğer oyun zaten bitmiş durumdaysa, tekrar işlem yapma
         if (gameState === 'gameover') {
-            console.log('⚠️ Game already over, skipping second game over trigger');
+            debugLog('gameplay', '⚠️ Game already over, skipping second game over trigger');
             return;
         }
         
-        console.log(`🎮 GAME OVER TRIGGERED: lowestY=${lowestBubbleY.toFixed(1)} >= threshold=${gameOverThreshold.toFixed(1)}`);
+        debugLog('gameplay', `🎮 GAME OVER TRIGGERED: lowestY=${lowestBubbleY.toFixed(1)} >= threshold=${gameOverThreshold.toFixed(1)}`);
         gameState = 'gameover';
         soundManager.play('gameOver'); // Oyun bitti sesi
         updatePlayerStats('lose'); // İstatistikleri güncelle
@@ -9043,6 +9043,7 @@ function findCluster(startR, startC) {
 
 function handleFloatingBubbles() {
     const connected = new Set();
+    if (!grid || !grid[0]) return; // guard: tavan satırı yoksa çık
     for (let c = 0; c < COLS; c++) {
         if (grid[0][c] && grid[0][c].state !== 'falling') {
             const stack = [{r: 0, c}];
@@ -9063,6 +9064,7 @@ function handleFloatingBubbles() {
     
     let droppedCount = 0;
     for(let r=0; r<ROWS; r++) {
+        if (!grid[r]) continue; // guard: eksik satırı atla (crash önleme)
         for(let c=0; c<COLS; c++) {
             const key = `${r},${c}`;
             if(grid[r][c] && (!connected.has(key) || grid[r][c]?.state === 'falling')) {
@@ -9883,7 +9885,7 @@ function triggerBomb(r, c) {
     
     handleFloatingBubbles();
     score += affected.size * 10 * combo;
-    console.log(`💣 BOMBA! ${affected.size} balon patlatıldı (4 sıra derinlik)`);
+    debugLog('gameplay', `💣 BOMBA! ${affected.size} balon patlatıldı (4 sıra derinlik)`);
 }
 
 function triggerLaser(r, c) {
@@ -10054,7 +10056,7 @@ function triggerLava(r, c) {
 function shiftGridDown() {
     // Eğer oyun zaten bitmiş durumdaysa, tekrar işlem yapma
     if (gameState === 'gameover') {
-        console.log('⚠️ Game already over, skipping shiftGridDown');
+        debugLog('gameplay', '⚠️ Game already over, skipping shiftGridDown');
         return;
     }
     
@@ -10091,14 +10093,14 @@ function shiftGridDown() {
     const gameOverThreshold = logicalHeight - BOTTOM_MARGIN - BUBBLE_RADIUS * 2;
     
     if (lowestBubbleY >= gameOverThreshold) {
-        console.log(`⚠️ shiftGridDown: Balonlar kritik seviyeye ulaştı! lowestY=${lowestBubbleY.toFixed(1)}, threshold=${gameOverThreshold.toFixed(1)}`);
-        console.log(`🎮 Game over durumu: gameState=${gameState} -> gameover`);
+        debugLog('gameplay', `⚠️ shiftGridDown: Balonlar kritik seviyeye ulaştı! lowestY=${lowestBubbleY.toFixed(1)}, threshold=${gameOverThreshold.toFixed(1)}`);
+        debugLog('gameplay', `🎮 Game over durumu: gameState=${gameState} -> gameover`);
         gameState='gameover';
         soundManager.play('gameOver');
-        console.log(`🎮 showEndScreen('lose') çağrılıyor...`);
+        debugLog('gameplay', `🎮 showEndScreen('lose') çağrılıyor...`);
         showEndScreen('lose');
         restartBtn.style.display='inline-block';
-        console.log(`🎮 Game over işlemi tamamlandı`);
+        debugLog('gameplay', `🎮 Game over işlemi tamamlandı`);
         return;
     }
 }
