@@ -305,14 +305,68 @@
   filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.35)) !important;
 }
 
-/* Çubuk-içi MENÜ butonu (www yapısı): cyan vurgulu */
-#game-root .power-ball-bar .hamburger-in-bar {
+/* Çubuk-içi MENÜ butonu (maketteki gibi çubuğun ortasında, 7 slotun 4.'sü).
+   .hamburger-btn eskiden position:absolute ile köşede yüzüyordu (bkz.
+   style.css ve onun mobil medya sorguları) — burada bunları geçersiz kılıp
+   diğer .power-ball-btn'lerle aynı akışa/boyuta sokuyoruz. */
+#game-root .power-ball-bar .hamburger-btn.hamburger-in-bar {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  width: 60px !important;
+  height: 60px !important;
+  padding: 0 !important;
+  z-index: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
   background: var(--rd-cyan-bg) !important;
   border: 1px solid var(--rd-cyan-brd) !important;
+  border-radius: 14px !important;
   color: var(--rd-cyan) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
-#game-root .power-ball-bar .hamburger-in-bar .hamburger-lines span { background: var(--rd-cyan) !important; }
-#game-root .power-ball-bar .hamburger-in-bar .menu-text { color: var(--rd-cyan) !important; }
+#game-root .power-ball-bar .hamburger-in-bar:hover {
+  border-color: var(--rd-cyan) !important;
+  background: rgba(0, 234, 255, 0.16) !important;
+  transform: translateY(-2px) !important;
+}
+#game-root .power-ball-bar .hamburger-in-bar .hamburger-lines {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  width: 18px !important;
+}
+#game-root .power-ball-bar .hamburger-in-bar .hamburger-lines span {
+  display: block !important;
+  width: 100% !important;
+  height: 2px !important;
+  border-radius: 2px !important;
+  background: var(--rd-cyan) !important;
+  box-shadow: none !important;
+  transition: transform 0.25s ease, opacity 0.25s ease !important;
+}
+/* .menu-text bir <span> olduğu için eski ".hamburger-btn span" kuralı
+   (height:4px; background:gradient bar) onu da yakalar — burada sıfırlıyoruz. */
+#game-root .power-ball-bar .hamburger-in-bar .menu-text {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: var(--rd-cyan) !important;
+  font-size: 0.58rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+/* Menü açıkken çizgiler X'e dönüşür (eski .active davranışı korunur) */
+#game-root .power-ball-bar .hamburger-in-bar.active .hamburger-lines span:nth-child(1) { transform: translateY(5px) rotate(45deg) !important; }
+#game-root .power-ball-bar .hamburger-in-bar.active .hamburger-lines span:nth-child(2) { opacity: 0 !important; }
+#game-root .power-ball-bar .hamburger-in-bar.active .hamburger-lines span:nth-child(3) { transform: translateY(-5px) rotate(-45deg) !important; }
 
 /* ============================ BİTİŞ EKRANI ============================== */
 /* (#game-root DIŞINDA — kendi ID'siyle hedefleniyor) */
@@ -526,3 +580,363 @@
 #gameModeOverlay .mode-icon {
   filter: drop-shadow(0 0 10px rgba(0, 234, 255, 0.30)) !important;
 }
+
+/* =========================================================================
+   EK EKRANLAR — hamburger menü > "Oyun Modu" akışıyla erişilen level
+   haritası, seviye tamamlama + hazine sandığı, ödül popup'ı ve günlük
+   bonus modalı. Aynı --rd-* paleti ve cam-panel deseniyle hizalanır.
+   ========================================================================= */
+
+/* ============================ LEVEL HARİTASI ============================ */
+
+.level-selection-overlay {
+  background: linear-gradient(160deg, var(--bg1, #111634), var(--bg2, #0d1128)) !important;
+}
+
+.top-bar-selection {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  backdrop-filter: blur(10px) !important;
+}
+.lives-text { color: #ff8fa8 !important; }
+.coins-amount { color: var(--rd-gold) !important; }
+.add-coins-btn {
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  box-shadow: 0 4px 14px rgba(255, 61, 127, 0.35) !important;
+}
+.add-coins-btn:hover { transform: scale(1.08) !important; }
+
+.progress-section {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+}
+.progress-text { color: var(--rd-tx) !important; text-shadow: none !important; }
+.progress-reward { background: var(--rd-cyan-bg) !important; }
+.progress-bar { background: rgba(255, 255, 255, 0.10) !important; }
+.progress-fill { background: linear-gradient(90deg, var(--rd-cyan), #8af0ff) !important; }
+.progress-counter { background: rgba(6, 9, 20, 0.75) !important; color: var(--rd-tx) !important; }
+.progress-timer { color: var(--rd-tx2) !important; }
+
+.sidebar-btn {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+}
+.sidebar-btn:hover {
+  border-color: var(--rd-cyan-brd) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: none !important;
+}
+.sidebar-btn.shop-btn,
+.sidebar-btn.map-btn,
+.sidebar-btn.daily-btn {
+  background: var(--rd-glass) !important;
+  border-color: var(--rd-glass-brd) !important;
+}
+.sidebar-btn.daily-btn::after { background: var(--rd-pink) !important; }
+
+.level-grid-container::-webkit-scrollbar-thumb { background: var(--rd-glass-brd) !important; }
+
+.level-button {
+  border: 3px solid transparent !important;
+}
+.level-button.current {
+  background: var(--rd-cyan-bg) !important;
+  border-color: var(--rd-cyan) !important;
+  box-shadow: 0 0 0 1px var(--rd-cyan-brd) inset !important;
+  animation: none !important;
+}
+.level-button.completed {
+  background: rgba(255, 61, 127, 0.14) !important;
+  border-color: var(--rd-pink) !important;
+}
+.level-button.unlocked {
+  background: var(--rd-glass) !important;
+  border-color: var(--rd-glass-brd) !important;
+}
+.level-button.locked {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--rd-glass-brd) !important;
+}
+.level-button:hover:not(.locked) { box-shadow: none !important; }
+.level-badge { background: var(--rd-pink) !important; }
+
+.play-button {
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  box-shadow: 0 10px 26px rgba(255, 61, 127, 0.42) !important;
+}
+.play-button:hover {
+  background: linear-gradient(180deg, #ff6ea3, var(--rd-pink-hi)) !important;
+  box-shadow: 0 12px 30px rgba(255, 61, 127, 0.5) !important;
+}
+.close-selection-btn {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  color: var(--rd-cyan) !important;
+}
+.close-selection-btn:hover { border-color: var(--rd-cyan-brd) !important; background: rgba(255, 255, 255, 0.07) !important; }
+
+/* ==================== SEVİYE TAMAMLAMA + HAZİNE SANDIĞI =================== */
+
+.level-complete-overlay-new {
+  background: rgba(6, 9, 20, 0.82) !important;
+  backdrop-filter: blur(12px) !important;
+}
+.level-complete-modal-new {
+  background: linear-gradient(160deg, #111634, #0d1128) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
+}
+.level-title-new {
+  color: var(--rd-tx) !important;
+  text-shadow: none !important;
+  animation: none !important;
+}
+.close-btn-new {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  color: var(--rd-tx2) !important;
+  box-shadow: none !important;
+}
+.close-btn-new:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: var(--rd-cyan-brd) !important;
+  transform: none !important;
+}
+/* Yıldızlar ve sandık: kutlama/ödül vurgusu olarak altın ton korunuyor
+   (maket de en-yüksek-skor rozetinde aynı altını aksan olarak kullanıyor). */
+.score-section {
+  background: var(--rd-cyan-bg) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  box-shadow: none !important;
+}
+.score-label-new { color: var(--rd-cyan) !important; }
+.score-text { color: var(--rd-tx) !important; text-shadow: none !important; }
+.next-level-btn {
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  box-shadow: 0 10px 26px rgba(255, 61, 127, 0.42) !important;
+}
+.next-level-btn:hover {
+  background: linear-gradient(180deg, #ff6ea3, var(--rd-pink-hi)) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ============================== ÖDÜL POPUP'I ============================= */
+
+.reward-popup {
+  background: rgba(255, 211, 77, 0.12) !important;
+  border: 1px solid rgba(255, 211, 77, 0.35) !important;
+  color: var(--rd-gold) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* ============================ GÜNLÜK BONUS =============================== */
+
+.game-daily-overlay { background: rgba(6, 9, 20, 0.82) !important; }
+.game-daily-modal {
+  background: linear-gradient(160deg, #111634, #0d1128) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: var(--rd-r) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
+}
+.daily-progress-header {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+}
+.progress-bubbles .bubble { filter: none !important; }
+.daily-title-section .progress-text { color: var(--rd-tx) !important; text-shadow: none !important; }
+.daily-progress-header .progress-reward { background: var(--rd-cyan-bg) !important; }
+
+.daily-bonus-title {
+  background: var(--rd-cyan-bg) !important;
+  color: var(--rd-cyan) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  box-shadow: none !important;
+}
+.daily-close {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  color: var(--rd-tx2) !important;
+}
+.daily-close:hover { background: rgba(255, 255, 255, 0.07) !important; border-color: var(--rd-cyan-brd) !important; }
+
+.daily-reward-item {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+}
+.daily-reward-item.today {
+  background: var(--rd-cyan-bg) !important;
+  border-color: var(--rd-cyan) !important;
+  box-shadow: inset 0 0 0 1px var(--rd-cyan-brd) !important;
+  animation: none !important;
+}
+.daily-reward-item.claimed {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--rd-glass-brd) !important;
+}
+.reward-amount { color: var(--rd-gold) !important; }
+
+.daily-day7-item {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+}
+.daily-day7-item.today {
+  background: var(--rd-cyan-bg) !important;
+  border-color: var(--rd-cyan) !important;
+  animation: none !important;
+}
+.daily-day7-item.claimed {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--rd-glass-brd) !important;
+}
+.day7-plus { color: var(--rd-gold) !important; }
+
+/* Ana ödül butonu (pembe, birincil) vs reklam-izle butonu (cyan, ikincil) —
+   ikisi de .main-claim-btn taşır, ayrım .normal-claim / .ad-claim ile yapılır. */
+.main-claim-btn.normal-claim {
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink)) !important;
+  box-shadow: 0 8px 22px rgba(255, 61, 127, 0.36) !important;
+}
+.main-claim-btn.normal-claim:hover:not(.disabled) { transform: translateY(-2px) !important; }
+.main-claim-btn.ad-claim {
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-cyan-brd) !important;
+  color: var(--rd-cyan) !important;
+  box-shadow: none !important;
+}
+.main-claim-btn.ad-claim:hover:not(.disabled) {
+  background: var(--rd-cyan-bg) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.main-claim-btn.disabled {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--rd-glass-brd) !important;
+  color: var(--rd-tx3) !important;
+  box-shadow: none !important;
+}
+.main-claim-btn .btn-badge { background: var(--rd-gold) !important; color: #1a1a2e !important; }
+
+/* =========================================================================
+   YENİ EKRANLAR — bu bileşenlerin eski (style.css) karşılığı yok, doğrudan
+   --rd-* paletiyle sıfırdan yazıldı. Diğer dinamik overlay'lerle aynı desen:
+   sabit konum + blur arka plan, ortalanmış cam kart, .show ile fade-in.
+   ========================================================================= */
+
+/* NOT: "Nasıl Oynanır" modalı burada yok — index.html'in kendi inline
+   <style>/<script> bloğu (#htpOverlay) zaten aynı --rd-* paletiyle
+   stilize edilmiş, çalışan bir modal sağlıyor; burada ikinci bir tanım
+   sadece kullanılmayan ölü CSS olurdu. */
+
+/* -------------------------------- MAĞAZA --------------------------------- */
+
+.shop-overlay {
+  position: fixed; inset: 0;
+  background: rgba(6, 9, 20, 0.82);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 4200;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  padding: 20px;
+}
+.shop-overlay.show { opacity: 1; }
+
+.shop-modal {
+  width: 100%; max-width: 440px;
+  background: linear-gradient(160deg, #111634, #0d1128);
+  border: 1px solid var(--rd-glass-brd);
+  border-radius: var(--rd-r);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  padding: 20px;
+}
+
+.shop-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.shop-header h2 { color: var(--rd-tx); font-size: 1.2rem; margin: 0; }
+.shop-close {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--rd-glass); border: 1px solid var(--rd-glass-brd);
+  color: var(--rd-cyan); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.shop-close:hover { border-color: var(--rd-cyan-brd); background: rgba(255, 255, 255, 0.07); }
+
+.shop-coins {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255, 211, 77, 0.10);
+  border: 1px solid rgba(255, 211, 77, 0.30);
+  color: var(--rd-gold);
+  padding: 8px 16px; border-radius: 999px;
+  font-size: 0.92rem; font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.shop-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+}
+.shop-item {
+  background: var(--rd-glass);
+  border: 1px solid var(--rd-glass-brd);
+  border-radius: var(--rd-r-sm);
+  padding: 14px 10px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.shop-item-icon { font-size: 1.8rem; }
+.shop-item-name { color: var(--rd-tx); font-size: 0.86rem; font-weight: 600; }
+.shop-item-stock { color: var(--rd-tx2); font-size: 0.72rem; }
+.shop-buy-btn {
+  width: 100%; margin-top: 4px;
+  padding: 8px 10px; border: none; border-radius: 10px;
+  background: linear-gradient(180deg, var(--rd-pink-hi), var(--rd-pink));
+  color: #fff; font-weight: 700; font-size: 0.82rem;
+  cursor: pointer;
+}
+.shop-buy-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.shop-buy-btn:active:not(:disabled) { transform: scale(0.97); }
+.shop-buy-btn:disabled {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rd-tx3);
+  cursor: not-allowed;
+}
+
+/* --------------------------- HARİTA VURGUSU ------------------------------ */
+/* "MAP" butonu ayrı bir ekran açmaz — level yolu zaten haritanın kendisi;
+   buton sadece geçerli seviyeye kaydırıp kısa bir cyan parıltı verir. */
+
+.level-node.map-highlight .level-button {
+  animation: mapPulse 1.2s ease-out;
+}
+@keyframes mapPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 234, 255, 0.6); }
+  70% { box-shadow: 0 0 0 16px rgba(0, 234, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 234, 255, 0); }
+}
+
+/* ============== BAŞLANGIÇ EKRANI META BUTONLARI (harita/shop/bonus) ===== */
+#game-root #startScreen .start-meta-buttons {
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  margin-top: 14px !important;
+  flex-wrap: wrap !important;
+}
+#game-root #startScreen .meta-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 10px 16px !important;
+  min-width: 88px !important;
+  background: var(--rd-glass) !important;
+  border: 1px solid var(--rd-glass-brd) !important;
+  border-radius: 14px !important;
+  color: var(--rd-tx) !important;
+  cursor: pointer !important;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease !important;
+}
+#game-root #startScreen .meta-btn:hover { border-color: var(--rd-cyan-brd) !important; background: var(--rd-cyan-bg) !important; }
+#game-root #startScreen .meta-btn:active { transform: scale(.96) !important; }
+#game-root #startScreen .meta-btn .meta-ic { font-size: 1.4rem !important; line-height: 1 !important; }
+#game-root #startScreen .meta-btn .meta-tx { font-size: .72rem !important; color: var(--rd-tx2) !important; font-weight: 600 !important; }
