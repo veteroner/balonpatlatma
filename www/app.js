@@ -477,15 +477,45 @@ window.AD_MEDIATION = {
         // eklentisi çağrılıyor, mediation katmanına asla geri dönülmüyor.
         if (AdMob) {
             if (adType === 'interstitial') {
-                console.log(`📱 [ADMOB] prepareInterstitial + showInterstitial (doğrudan)`);
-                await AdMob.prepareInterstitial({ adId, isTesting: ADMOB_CONFIG.testMode });
-                await AdMob.showInterstitial();
+                // 🚀 Ön yüklüyse doğrudan göster (anında). Değilse hazırla.
+                if (!AD_PRELOAD.isFresh('interstitial')) {
+                    console.log(`📱 [ADMOB] interstitial ön yüklü değil -> prepare`);
+                    await AdMob.prepareInterstitial({ adId, isTesting: ADMOB_CONFIG.testMode });
+                } else {
+                    console.log(`⚡ [ADMOB] interstitial ÖN YÜKLÜ -> anında göster`);
+                }
+                try {
+                    await AdMob.showInterstitial();
+                } catch (showErr) {
+                    // Ön yükleme bayat/tüketilmiş olabilir -> yeniden hazırla ve tekrar dene
+                    console.warn('⚠️ [ADMOB] interstitial show hatası, yeniden hazırlanıyor:', showErr?.message || showErr);
+                    AD_PRELOAD.mark('interstitial', false);
+                    await AdMob.prepareInterstitial({ adId, isTesting: ADMOB_CONFIG.testMode });
+                    await AdMob.showInterstitial();
+                }
+                AD_PRELOAD.mark('interstitial', false);
+                setTimeout(() => { preloadAd('interstitial'); }, 1500); // sonrakini hazırla
                 console.log(`📱 [ADMOB] Interstitial success`);
                 return { success: true };
             } else if (adType === 'rewarded') {
-                console.log(`📱 [ADMOB] prepareRewardVideoAd + showRewardVideoAd (doğrudan)`);
-                await AdMob.prepareRewardVideoAd({ adId, isTesting: ADMOB_CONFIG.testMode });
-                const result = await AdMob.showRewardVideoAd();
+                // 🚀 Ön yüklüyse doğrudan göster (anında). Değilse hazırla.
+                if (!AD_PRELOAD.isFresh('rewarded')) {
+                    console.log(`📱 [ADMOB] rewarded ön yüklü değil -> prepare`);
+                    await AdMob.prepareRewardVideoAd({ adId, isTesting: ADMOB_CONFIG.testMode });
+                } else {
+                    console.log(`⚡ [ADMOB] rewarded ÖN YÜKLÜ -> anında göster`);
+                }
+                let result;
+                try {
+                    result = await AdMob.showRewardVideoAd();
+                } catch (showErr) {
+                    console.warn('⚠️ [ADMOB] rewarded show hatası, yeniden hazırlanıyor:', showErr?.message || showErr);
+                    AD_PRELOAD.mark('rewarded', false);
+                    await AdMob.prepareRewardVideoAd({ adId, isTesting: ADMOB_CONFIG.testMode });
+                    result = await AdMob.showRewardVideoAd();
+                }
+                AD_PRELOAD.mark('rewarded', false);
+                setTimeout(() => { preloadAd('rewarded'); }, 1500); // sonrakini hazırla
                 const rewarded = !!result;
                 console.log(`📱 [ADMOB] Rewarded result:`, rewarded);
 
@@ -541,6 +571,55 @@ const ADMOB_CONFIG = {
         return this[type][platform] || this[type].ios;
     }
 };
+
+/* =========================================================================
+ * 🚀 REKLAM ÖN YÜKLEME (PRELOAD)
+ * Sorun: showAdMobAd her seferinde prepare -> show yapıyordu; reklam ancak
+ * butona basıldıktan SONRA indirilmeye başlıyor, kullanıcı bekliyordu.
+ * Çözüm: reklamı önceden hazırla; gösterim anında doğrudan show çağrılır.
+ * Güvenlik: ön yükleme bayat/tüketilmişse show hata verir -> otomatik olarak
+ * prepare+show'a geri düşülür (reklam geliri riske girmez).
+ * ========================================================================= */
+const AD_PRELOAD = {
+    interstitial: { ready: false, at: 0 },
+    rewarded: { ready: false, at: 0 },
+    TTL_MS: 30 * 60 * 1000, // AdMob reklamları zamanla bayatlar (~1sa); 30dk sonra yenile
+    isFresh(type) {
+        const s = this[type];
+        return !!(s && s.ready && (Date.now() - s.at) < this.TTL_MS);
+    },
+    mark(type, ready) {
+        const s = this[type];
+        if (s) { s.ready = !!ready; s.at = ready ? Date.now() : 0; }
+    }
+};
+
+// Reklamı önceden hazırla (non-blocking kullanılmalı)
+async function preloadAd(type) {
+    try {
+        if (!AdMob) return false;
+        if (type !== 'interstitial' && type !== 'rewarded') return false;
+        if (AD_PRELOAD.isFresh(type)) return true;
+
+        const platform = window.Capacitor?.getPlatform?.();
+        const adId = ADMOB_CONFIG.getAdId(type, platform);
+        const isTesting = ADMOB_CONFIG.testMode;
+
+        if (type === 'interstitial') {
+            await AdMob.prepareInterstitial({ adId, isTesting });
+        } else {
+            await AdMob.prepareRewardVideoAd({ adId, isTesting });
+        }
+        AD_PRELOAD.mark(type, true);
+        console.log(`✅ [PRELOAD] ${type} hazır (anında gösterilebilir)`);
+        return true;
+    } catch (e) {
+        AD_PRELOAD.mark(type, false);
+        console.warn(`⚠️ [PRELOAD] ${type} hazırlanamadı (non-blocking):`, e?.message || e);
+        return false;
+    }
+}
+window.preloadAd = preloadAd;
 
 // AdMob Plugin Integration - Global Reference
 let AdMobPlugin = null;
@@ -661,278 +740,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const platform = Capacitor.getPlatform ? Capacitor.getPlatform() : 'web';
             
-            // 🎯 UNITY ADS INITIALIZATION (PRIMARY AD NETWORK)
-            console.log('🎮 [INIT] Starting Unity Ads initialization...');
-            console.log('🎮 [INIT] Platform:', platform);
-            console.log('🎮 [INIT] Capacitor:', !!Capacitor);
-            console.log('🎮 [INIT] Capacitor.Plugins:', !!Capacitor.Plugins);
-            
-            // Log ALL available plugins with details
-            if (Capacitor.Plugins) {
-                const allPlugins = Object.keys(Capacitor.Plugins);
-                console.log('🎮 [INIT] Total plugins count:', allPlugins.length);
-                console.log('🎮 [INIT] All plugin names:', allPlugins);
-                console.log('🎮 [INIT] Full Plugins object:', Capacitor.Plugins);
-                
-                // Check each plugin name variant
-                console.log('🔍 [UNITY] UnityAdsPlugin exists:', 'UnityAdsPlugin' in Capacitor.Plugins);
-                console.log('🔍 [UNITY] UnityAdsCapacitorPlugin exists:', 'UnityAdsCapacitorPlugin' in Capacitor.Plugins);
-                console.log('🔍 [UNITY] UnityAds exists:', 'UnityAds' in Capacitor.Plugins);
-            }
-            
-            // Unity Ads native tarafta zaten initialize edildi (MainActivity/AppDelegate)
-            // JavaScript tarafında Capacitor plugin bağlantısını kontrol et
-            
-            // Capacitor plugin'i kontrol et - npm package exports as "Unityads"
-            const UnityPlugin = Capacitor.Plugins?.Unityads || Capacitor.Plugins?.UnityAdsPlugin;
-            console.log('🔍 [UNITY] Unityads (from npm) available:', !!Capacitor.Plugins?.Unityads);
-            console.log('🔍 [UNITY] UnityAdsPlugin (custom) available:', !!Capacitor.Plugins?.UnityAdsPlugin);
-            console.log('🔍 [UNITY] Selected plugin:', !!UnityPlugin);
-            console.log('🔍 [UNITY] Plugin type:', typeof UnityPlugin);
-            console.log('🔍 [UNITY] Plugin methods:', UnityPlugin ? Object.keys(UnityPlugin) : 'N/A');
-            
-            if (UnityPlugin) {
-                try {
-                    console.log('✅ [UNITY] Unity Ads Capacitor Plugin found!');
-                    console.log('🎮 [UNITY] Unity Game IDs - iOS: 5970926, Android: 5970927');
-                    console.log('📺 [UNITY] Production placements active');
-                    
-                    // Setup Unity Ads event listeners BEFORE initialization
-                    console.log('🔧 [UNITY] Setting up event listeners...');
-                    
-                    UnityPlugin.addListener('onAdLoaded', (event) => {
-                        console.log('✅ [UNITY EVENT] Ad loaded:', event?.placementId || event);
-                        console.log('🔍 [UNITY EVENT] Full event object:', JSON.stringify(event));
-                        
-                        const eventPlacementId = event?.placementId || event?.placement || event;
-                        
-                        // Mark ad as ready in JavaScript state
-                        if (!window._unityAdsReady) window._unityAdsReady = {};
-                        if (eventPlacementId) {
-                            window._unityAdsReady[eventPlacementId] = true;
-                            console.log('📋 [UNITY] Ready ads:', Object.keys(window._unityAdsReady));
-                        }
-                        
-                        // Auto-show if we have a pending request for this placement
-                        if (window._pendingUnityShow) {
-                            const pending = window._pendingUnityShow;
-                            console.log(`🔍 [UNITY EVENT] Checking pending show:`, pending, 'vs event placementId:', eventPlacementId);
-                            
-                            // Match placement ID
-                            const shouldShow = pending.placementId === eventPlacementId;
-                            
-                            if (shouldShow) {
-                                console.log(`📺 [UNITY EVENT] Pending show detected for ${pending.type}, showing now...`);
-                                window._pendingUnityShow = null;
-                                
-                                // Small delay to ensure SDK is fully ready
-                                setTimeout(() => {
-                                    try {
-                                        if (pending.type === 'rewarded') {
-                                            UnityPlugin.showRewardedVideo();
-                                        } else if (pending.type === 'interstitial') {
-                                            UnityPlugin.showInterstitial();
-                                        }
-                                    } catch (e) {
-                                        console.error('❌ [UNITY EVENT] Auto-show after load failed:', e);
-                                    }
-                                }, 100);
-                            }
-                        }
-                    });
-                    
-                    UnityPlugin.addListener('onAdFailedToLoad', (event) => {
-                        console.error('❌ [UNITY EVENT] Ad failed to load:', event.placementId, event.error);
-                    });
-                    
-                    UnityPlugin.addListener('onAdStarted', (event) => {
-                        console.log('▶️ [UNITY EVENT] Ad started:', event.placementId);
-                    });
-                    
-                    UnityPlugin.addListener('onAdCompleted', (event) => {
-                        console.log('✅ [UNITY EVENT] Ad completed:', event.placementId, 'state:', event.state);
-                        console.log('🔧 [UNITY EVENT] ========== VIEWPORT FIX TRIGGERED (onAdCompleted) ==========');
-                        
-                        // 🔥 CRITICAL: HER REKLAM BİTTİĞİNDE STATE'İ GERİ YÜKLE (interstitial dahil!)
-                        setTimeout(() => {
-                            if (typeof restoreGameStateAfterAd === 'function') {
-                                console.log('🔄 [UNITY EVENT] Calling restoreGameStateAfterAd from onAdCompleted');
-                                restoreGameStateAfterAd();
-                            }
-                        }, 100);
-                        
-                        // Modalı kapat ve ödülü ver (sadece rewarded için)
-                        if (event.state === 1) {
-                            console.log('🎯 [UNITY EVENT] Rewarded ad completed successfully!');
-                            
-                            // Modalı kapat
-                            const modal = document.getElementById('powerBallModal');
-                            if (modal && modal.style.display !== 'none') {
-                                modal.style.display = 'none';
-                                console.log('✅ [UNITY EVENT] Modal kapatildi');
-                            }
-                            
-                            // Ödül callback'ı çağır
-                            if (window._pendingRewardCallback) {
-                                console.log('🎁 [UNITY EVENT] Calling reward callback');
-                                try {
-                                    window._pendingRewardCallback();
-                                } catch (e) {
-                                    console.error('❌ [UNITY EVENT] Reward callback error:', e);
-                                }
-                                window._pendingRewardCallback = null;
-                            }
-                        }
-                        
-                        // Resolve promise if waiting
-                        if (window._pendingRewardResolve) {
-                            window._pendingRewardResolve({ success: true, rewarded: event.state === 1 });
-                            window._pendingRewardResolve = null;
-                            window._pendingRewardReject = null;
-                        }
-                    });
-                    
-                    UnityPlugin.addListener('onAdFailedToShow', (event) => {
-                        console.error('❌ [UNITY EVENT] Ad failed to show:', event.placementId, event.error);
-                        
-                        // 🔥 CRITICAL: Reklam başarısız olsa bile state'i geri yükle
-                        setTimeout(() => {
-                            if (typeof restoreGameStateAfterAd === 'function') {
-                                console.log('🔄 [UNITY EVENT] Calling restoreGameStateAfterAd from onAdFailedToShow');
-                                restoreGameStateAfterAd();
-                            }
-                        }, 100);
-                        
-                        window._pendingRewardCallback = null;
-                        
-                        // Reject promise if waiting
-                        if (window._pendingRewardReject) {
-                            window._pendingRewardReject(new Error(event.error || 'Ad failed to show'));
-                            window._pendingRewardResolve = null;
-                            window._pendingRewardReject = null;
-                        }
-                    });
-                    
-                    UnityPlugin.addListener('onAdClicked', (event) => {
-                        console.log('👆 [UNITY EVENT] Ad clicked:', event.placementId);
-                    });
-                    
-                    // 🔥 YENİ: Kullanıcı reklamı atladı/kapatırsa (skip button)
-                    UnityPlugin.addListener('onAdSkipped', (event) => {
-                        console.log('⏩ [UNITY EVENT] Ad skipped:', event.placementId);
-                        
-                        // 🔥 CRITICAL: HER SKIP'TE STATE'İ GERİ YÜKLE
-                        setTimeout(() => {
-                            if (typeof restoreGameStateAfterAd === 'function') {
-                                console.log('🔄 [UNITY EVENT] Calling restoreGameStateAfterAd from onAdSkipped');
-                                restoreGameStateAfterAd();
-                            }
-                        }, 100);
-                        
-                        // Modalı kapat (ama ödül verme)
-                        const modal = document.getElementById('powerBallModal');
-                        if (modal && modal.style.display !== 'none') {
-                            modal.style.display = 'none';
-                            console.log('✅ [UNITY EVENT] Modal kapatildi (skip)');
-                        }
-                        
-                        // Callback'ı temizle
-                        window._pendingRewardCallback = null;
-                        
-                        // Promise'i reject et
-                        if (window._pendingRewardReject) {
-                            window._pendingRewardReject(new Error('Ad was skipped'));
-                            window._pendingRewardResolve = null;
-                            window._pendingRewardReject = null;
-                        }
-                    });
-                    
-                    // 🔥 YENİ: Reklam tamamen kapatıldı/dismiss edildi
-                    UnityPlugin.addListener('onAdDismissed', (event) => {
-                        console.log('🚪 [UNITY EVENT] Ad dismissed:', event.placementId);
-                        console.log('🔧 [UNITY EVENT] ========== VIEWPORT FIX TRIGGERED (onAdDismissed) ==========');
-                        
-                        // 🔥 CRITICAL: HER DISMISS'TE STATE'İ GERİ YÜKLE (KOŞULSUZ!)
-                        setTimeout(() => {
-                            if (typeof restoreGameStateAfterAd === 'function') {
-                                console.log('🔄 [UNITY EVENT] Calling restoreGameStateAfterAd from onAdDismissed');
-                                restoreGameStateAfterAd();
-                            }
-                        }, 100);
-                        
-                        // Modalı kapat (güvenlik için)
-                        const modal = document.getElementById('powerBallModal');
-                        if (modal && modal.style.display !== 'none') {
-                            modal.style.display = 'none';
-                            console.log('✅ [UNITY EVENT] Modal kapatildi (dismissed)');
-                        }
-                        
-                        // Oyunu devam ettir
-                        try { resumeGameplayAfterReward(); } catch (_) {}
-                    });
-                    
-                    // 🔥 YENİ: SDK başlatma tamamlandı
-                    UnityPlugin.addListener('onInitializationComplete', (event) => {
-                        console.log('✅ [UNITY EVENT] SDK initialization complete');
-                        AD_MEDIATION.markInitialized('unity', true);
-                    });
-                    
-                    // 🔥 YENİ: SDK başlatma başarısız
-                    UnityPlugin.addListener('onInitializationFailed', (event) => {
-                        console.error('❌ [UNITY EVENT] SDK initialization failed:', event.error);
-                        AD_MEDIATION.markAvailable('unity', false);
-                        AD_MEDIATION.logError('unity', new Error(event.error));
-                    });
-                    
-                    console.log('✅ [UNITY] Event listeners configured');
-                    
-                    // Initialize Unity Ads via npm package
-                    const gameId = platform === 'ios' ? '5970926' : '5970927';
-                    await UnityPlugin.initialize({ gameId, testMode: false });
-                    console.log('✅ [UNITY] Unity Ads initialized via npm package');
-                    
-                    // Load interstitial ad with platform-specific placement ID
-                    const interstitialPlacementId = platform === 'ios' ? 'Interstitial_iOS' : 'Interstitial_Android';
-                    await UnityPlugin.loadInterstitial({ placementId: interstitialPlacementId });
-                    console.log('✅ [UNITY] Interstitial ad loaded');
-                    
-                    AD_MEDIATION.markAvailable('unity', true);
-                    AD_MEDIATION.markInitialized('unity', true);
-                    
-                } catch (error) {
-                    console.error('❌ [UNITY] Plugin initialization error:', error);
-                    AD_MEDIATION.logError('unity', error);
-                    AD_MEDIATION.markAvailable('unity', false);
-                }
-            } else {
-                console.warn('⚠️ [UNITY] Unity Ads Capacitor Plugin not found');
-                console.log('� [UNITY] Checking UnityAdsBridge fallback...');
-                
-                // Fallback: Check if UnityAdsBridge is available (legacy)
-                if (window.UnityAdsBridge) {
-                    try {
-                        console.log('🔧 [UNITY] UnityAdsBridge found, initializing...');
-                        await window.UnityAdsBridge.init();
-                        
-                        if (window.UnityAdsBridge.isNativeReady) {
-                            console.log('✅ [UNITY] UnityAdsBridge initialized successfully');
-                            AD_MEDIATION.markAvailable('unity', true);
-                        } else {
-                            console.warn('⚠️ [UNITY] UnityAdsBridge not ready');
-                            AD_MEDIATION.markAvailable('unity', false);
-                        }
-                    } catch (bridgeError) {
-                        console.error('❌ [UNITY] UnityAdsBridge error:', bridgeError);
-                        AD_MEDIATION.logError('unity', bridgeError);
-                        AD_MEDIATION.markAvailable('unity', false);
-                    }
-                } else {
-                    console.error('❌ [UNITY] No Unity Ads integration found');
-                    AD_MEDIATION.markAvailable('unity', false);
-                }
-            }
-            
-            console.log('📺 [INIT] AdMob: Setting up as fallback network');
+            // ℹ️ Unity Ads projeden tamamen kaldırıldı (native SDK, pod, gradle ve
+            // plugin dahil). Buradaki init bloğu ölü koddu ve her açılışta
+            // "Unity Ads Capacitor Plugin not found" uyarıları basıyordu -> kaldırıldı.
+            // NOT: Uygulamada hâlâ Unity reklamı görünüyorsa, bu AdMob panelindeki
+            // (admob.google.com) MEDIATION grubundan gelir; sunucu tarafı ayardır.
+            console.log('📺 [INIT] AdMob: tek reklam ağı');
             
             // AdMob'u fallback olarak işaretle
             AD_MEDIATION.markAvailable('admob', true);
@@ -1008,29 +821,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                             console.log('📱 iOS Simulator tespit edildi - Test reklamları aktif');
                         }
                         
-                        // 🚀 SAFE: Prepare interstitial ad NON-BLOCKING with delay
+                        // 🚀 SAFE: Reklamları ÖNCEDEN hazırla (non-blocking, gecikmeli)
+                        // Böylece butona basıldığında reklam anında açılır.
+                        // Hem interstitial hem rewarded (powerball "reklam izle") ön yüklenir.
                         setTimeout(() => {
-                            try {
-                                const platform = window.Capacitor?.getPlatform?.();
-                                const adId = ADMOB_CONFIG.getAdId('interstitial', platform);
-                                const isTesting = ADMOB_CONFIG.testMode;
-                                
-                                console.log(`📺 Preparing interstitial ad (delayed): ${adId}, Test: ${isTesting}`);
-                                
-                                AdMob.prepareInterstitial({
-                                    adId: adId,
-                                    isTesting: isTesting
-                                }).then(() => {
-                                    console.log(`✅ Interstitial hazırlandı - Mode: ${isTesting ? 'TEST' : 'PRODUCTION'}`);
-                                    interstitialAdLoaded = true;
-                                }).catch(e => {
-                                    console.warn('⚠️ Geçiş reklamı hazırlama uyarısı (non-blocking):', e);
-                                });
-                                
-                            } catch (e) {
-                                console.warn('⚠️ Geçiş reklamı hazırlama hatası (non-blocking):', e);
-                            }
-                        }, 4000); // 4 second delay for WebView readiness
+                            preloadAd('interstitial').then(ok => {
+                                if (ok) interstitialAdLoaded = true;
+                            }).catch(() => {});
+                        }, 4000); // WebView hazır olsun diye gecikme
+                        setTimeout(() => {
+                            preloadAd('rewarded').catch(() => {});
+                        }, 6000); // rewarded'ı biraz sonra hazırla (ağı tıkamasın)
                     } catch (e) {
                         console.warn('⚠️ AdMob initialization warning:', e);
                         AD_MEDIATION.logError('admob', e);
