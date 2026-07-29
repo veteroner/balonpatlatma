@@ -10478,19 +10478,32 @@ function restoreGameStateAfterAd() {
         console.log('✅ [AD] Backup timeout cancelled - event received properly');
     }
     
-    // Önce memory'deki state'i dene, yoksa localStorage'dan al
-    let stateToRestore = _savedGameState || _initialGameState;
-    
-    // 🔥 Memory'de yoksa localStorage'dan al (WebView yeniden başlatıldıysa)
-    if (!stateToRestore) {
-        try {
-            const savedStr = localStorage.getItem('_gameStateBeforeAd') || localStorage.getItem('_initialGameState');
-            if (savedStr) {
-                stateToRestore = JSON.parse(savedStr);
-                console.log('🔄 [AD] State restored from localStorage:', stateToRestore);
-            }
-        } catch (e) { console.warn('localStorage restore failed:', e); }
+    // 🐛 KRİTİK GUARD: Bu fonksiyon native onResume'dan HER uygulama öne
+    // gelişinde (açılış dahil) 5 kez çağrılıyor. Guard olmadan, gerçekte hiç
+    // reklam gösterilmemişken ESKİ OTURUMA ait boyutları (localStorage) geri
+    // yükleyip logicalWidth/BUBBLE_RADIUS/canvas.width'i eziyordu ->
+    // HUD yukarı kayması + canvas backing store bozulması (çözünürlük düşmesi).
+    // Artık yalnızca GERÇEKTEN reklam gösterildiyse boyut geri yüklenir.
+    const _adWasShowing = (_isAdCurrentlyShowing === true) || !!_savedGameState;
+    if (!_adWasShowing) {
+        // Reklam yoktu: boyutlara DOKUNMA, sadece güvenli scroll/stil sıfırla
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        if (canvas) {
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.transform = 'none';
+            canvas.style.webkitTransform = 'none';
+        }
+        return;
     }
+
+    // Yalnızca bu oturumda reklam öncesi kaydedilen bellek state'i kullanılır.
+    // (Bayat cross-session localStorage boyutları KASITLI olarak kullanılmıyor;
+    //  WebView yeniden başladıysa doğru boyutu onResize hesaplar.)
+    let stateToRestore = _savedGameState;
     
     if (!stateToRestore) {
         console.warn('⚠️ [AD] No saved state to restore - keeping current values');
