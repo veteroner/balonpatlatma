@@ -5601,25 +5601,21 @@ function gameLoop(currentTime = 0) {
     
     try {
     
-    // 🔥 CRITICAL: Her frame'de canvas boyutlarını kontrol et
-    // Reklam sonrası bozulma varsa düzelt
-    if (_initialGameState && canvas) {
-        const expectedWidth = _initialGameState.logicalWidth;
-        const expectedHeight = _initialGameState.logicalHeight;
-        const currentStyleWidth = parseInt(canvas.style.width) || 0;
-        const currentStyleHeight = parseInt(canvas.style.height) || 0;
-        
-        // Boyut sapması %5'ten fazlaysa düzelt
-        const widthDiff = Math.abs(currentStyleWidth - expectedWidth) / expectedWidth;
-        const heightDiff = Math.abs(currentStyleHeight - expectedHeight) / expectedHeight;
-        
-        if (widthDiff > 0.05 || heightDiff > 0.05) {
-            console.warn(`⚠️ [GAMELOOP] Canvas boyutu bozuk! current=${currentStyleWidth}x${currentStyleHeight}, expected=${expectedWidth}x${expectedHeight}`);
-            console.log('🔧 [GAMELOOP] Otomatik düzeltme yapılıyor...');
-            
-            // State'i geri yükle
-            if (typeof restoreGameStateAfterAd === 'function') {
-                restoreGameStateAfterAd();
+    // 🔥 Her frame'de canvas'ın CSS boyutu CANLI pencereyle uyumlu mu?
+    // Referans DAİMA canlı pencere (window.innerWidth/Height) - bayat
+    // _initialGameState DEĞİL. Eski kod bayat snapshot'a (ör. 878) karşı
+    // karşılaştırıp canlı değeri (ör. 932) "bozuk" sanıyor ve her frame
+    // restore çağırıyordu -> sonsuz çatışma + HUD kayması. Artık uyumsuzluk
+    // varsa canvas canlı pencereye senkronlanır (kendi kendini iyileştirir).
+    if (canvas) {
+        const liveW = window.innerWidth, liveH = window.innerHeight;
+        if (liveW > 100 && liveH > 100) {
+            const curW = parseInt(canvas.style.width) || 0;
+            const curH = parseInt(canvas.style.height) || 0;
+            const wDiff = Math.abs(curW - liveW) / liveW;
+            const hDiff = Math.abs(curH - liveH) / liveH;
+            if (wDiff > 0.02 || hDiff > 0.02) {
+                syncCanvasToWindow('gameloop-guard');
             }
         }
     }
@@ -10220,6 +10216,15 @@ function syncCanvasToWindow(reason) {
     }
     logicalWidth = w;
     logicalHeight = h;
+    // Viewport'a bağlı anchor'ları canlı boyuta göre güncelle. Bu cihazda reklam/
+    // status-bar sonrası innerHeight 878<->932 değişebiliyor; shooterY yüksekliğe
+    // bağlı olduğu için güncellenmezse shooter/HUD yeni tabana göre yukarıda kalır
+    // ("HUD yukarı kaydı"). gridOffsetY sabit, gridOffsetX/COLS genişliğe bağlı
+    // (genişlik değişmiyor) -> onlara dokunmaya gerek yok.
+    try {
+        shooterX = logicalWidth / 2;
+        shooterY = logicalHeight - BOTTOM_MARGIN - 35;
+    } catch (_) {}
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
     canvas.style.position = 'fixed';
