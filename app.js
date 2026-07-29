@@ -3658,55 +3658,10 @@ function onResize() {
     if (gameState === 'playing' || gameState === 'ready' || _isAdCurrentlyShowing) {
         console.log('⚠️ [onResize] BLOCKED - Oyun aktif veya reklam gösteriliyor, grid korunuyor');
         
-        // 🔥 Kayıtlı değerleri MUTLAKA geri yükle (reklam sonrası bozulma düzeltmesi)
-        const savedStr = localStorage.getItem('_initialGameState');
-        if (savedStr) {
-            try {
-                const saved = JSON.parse(savedStr);
-                // Global değişkenleri geri yükle - KOŞULSUZ
-                logicalWidth = saved.logicalWidth;
-                logicalHeight = saved.logicalHeight;
-                gridOffsetX = saved.gridOffsetX;
-                gridOffsetY = saved.gridOffsetY;
-                shooterX = saved.shooterX;
-                shooterY = saved.shooterY;
-                BUBBLE_RADIUS = saved.BUBBLE_RADIUS;
-                COLS = saved.COLS;
-                ROW_HEIGHT = saved.ROW_HEIGHT;
-                _initialGameState = saved;
-                
-                // Canvas stillerini ve backing store'u kayıtlı değerlere göre ayarla
-                if (canvas) {
-                    const dpr = window.devicePixelRatio || 1;
-                    
-                    // 🔥 CRITICAL: Canvas backing store'u da düzelt!
-                    const expectedCanvasWidth = saved.canvasWidth || Math.round(saved.logicalWidth * dpr);
-                    const expectedCanvasHeight = saved.canvasHeight || Math.round(saved.logicalHeight * dpr);
-                    
-                    if (canvas.width !== expectedCanvasWidth || canvas.height !== expectedCanvasHeight) {
-                        console.log(`🔧 [onResize] Canvas backing store düzeltiliyor: ${canvas.width}x${canvas.height} -> ${expectedCanvasWidth}x${expectedCanvasHeight}`);
-                        canvas.width = expectedCanvasWidth;
-                        canvas.height = expectedCanvasHeight;
-                    }
-                    
-                    canvas.style.width = saved.logicalWidth + 'px';
-                    canvas.style.height = saved.logicalHeight + 'px';
-                    canvas.style.position = 'fixed';
-                    canvas.style.top = '0';
-                    canvas.style.left = '0';
-                    
-                    // Context transform düzelt
-                    if (ctx) {
-                        ctx.setTransform(1, 0, 0, 1, 0, 0);
-                        ctx.scale(dpr, dpr);
-                    }
-                }
-                
-                console.log('🔄 [onResize] State RESTORED from localStorage:', saved);
-            } catch (e) { console.warn('localStorage restore in onResize failed:', e); }
-        }
-        
-        window.scrollTo(0, 0);
+        // 🎯 Bayat localStorage snapshot'ı GERİ YÜKLEME. Canvas'ı canlı pencereden
+        // tazele (grid değerlerine dokunma -> oyun bozulmaz). Reklam viewport'u
+        // değiştirmediği için logicalWidth aynı kalır, grid/HUD kaymaz.
+        syncCanvasToWindow('resize-guard');
         return; // Grid değerlerini değiştirme!
     }
     
@@ -4058,11 +4013,10 @@ function forceHideEndScreen() {
 function initializeNextLevel() {
     console.log(`🎮 [LEVEL] Initializing level ${currentLevel}...`);
     
-    // 🔥 HER LEVEL BAŞINDA CANVAS BOYUTLARINI DÜZELT
+    // 🔥 HER LEVEL BAŞINDA CANVAS'I CANLI PENCEREDEN TAZELE
+    // (Bayat _initialGameState snapshot'ı KULLANMA -> çözünürlük düşmesi/HUD kayması yok.)
     if (_initialGameState) {
-        console.log('🔧 [LEVEL] Restoring canvas dimensions from initial state...');
-        
-        // Kayıtlı değerleri geri yükle
+        // Grid layout değerlerini bellek state'inden geri yükle (reklam boyutu değiştirmez)
         logicalWidth = _initialGameState.logicalWidth;
         logicalHeight = _initialGameState.logicalHeight;
         gridOffsetX = _initialGameState.gridOffsetX;
@@ -4072,38 +4026,10 @@ function initializeNextLevel() {
         BUBBLE_RADIUS = _initialGameState.BUBBLE_RADIUS;
         COLS = _initialGameState.COLS;
         ROW_HEIGHT = _initialGameState.ROW_HEIGHT;
-        
-        // Canvas stil ve backing store düzeltmesi
-        if (canvas) {
-            const dpr = window.devicePixelRatio || 1;
-            const expectedCanvasWidth = _initialGameState.canvasWidth || Math.round(logicalWidth * dpr);
-            const expectedCanvasHeight = _initialGameState.canvasHeight || Math.round(logicalHeight * dpr);
-            
-            // Backing store düzelt
-            if (canvas.width !== expectedCanvasWidth || canvas.height !== expectedCanvasHeight) {
-                console.log(`🔧 [LEVEL] Canvas backing store: ${canvas.width}x${canvas.height} -> ${expectedCanvasWidth}x${expectedCanvasHeight}`);
-                canvas.width = expectedCanvasWidth;
-                canvas.height = expectedCanvasHeight;
-            }
-            
-            // Style düzelt
-            canvas.style.width = logicalWidth + 'px';
-            canvas.style.height = logicalHeight + 'px';
-            canvas.style.position = 'fixed';
-            canvas.style.top = '0';
-            canvas.style.left = '0';
-            
-            // Context transform düzelt
-            if (ctx) {
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.scale(dpr, dpr);
-            }
-        }
-        
-        // Ad flag'i sıfırla
+        // Canvas backing store'u CANLI pencereden ayarla (bayat snapshot değil)
+        syncCanvasToWindow('level-start');
         _isAdCurrentlyShowing = false;
-        
-        console.log(`✅ [LEVEL] Canvas restored: ${logicalWidth}x${logicalHeight}, BUBBLE_RADIUS=${BUBBLE_RADIUS}, COLS=${COLS}`);
+        console.log(`✅ [LEVEL] Canvas synced: ${logicalWidth}x${logicalHeight}, BUBBLE_RADIUS=${BUBBLE_RADIUS}, COLS=${COLS}`);
     }
     
     // Yeni seviye için grid'i temizle ve yeniden doldur
@@ -10271,6 +10197,43 @@ function saveInitialGameState() {
     console.log('💾 [INIT] Initial game state saved:', _initialGameState);
 }
 
+// 🎯 TEK DOĞRULUK KAYNAĞI: Canvas'ı CANLI pencereden boyutlandırır.
+// Native reklam overlay'i gerçek viewport'u (innerWidth/Height/dpr) DEĞİŞTİRMEZ;
+// bu yüzden reklam sonrası doğru davranış bayat snapshot geri yüklemek DEĞİL,
+// canlı pencereden yeniden hesaplamaktır. Çözünürlük hep dpr oranında kalır ->
+// "çözünürlük düşmesi" ve "HUD yukarı kayması" bu şekilde önlenir.
+// WebView süreci yeniden başlarken innerWidth 0/çok küçük gelebilir -> DOKUNMAZ.
+function syncCanvasToWindow(reason) {
+    if (!canvas) return false;
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h || w < 100 || h < 100) {
+        console.log('⚠️ [CANVAS SYNC] Geçersiz boyut, atlandı:', w, h, '('+reason+')');
+        return false;
+    }
+    const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+    if (canvas.width !== bw || canvas.height !== bh) {
+        console.log('🔧 [CANVAS SYNC] backing ' + canvas.width + 'x' + canvas.height +
+                    ' -> ' + bw + 'x' + bh + ' (' + reason + ')');
+        canvas.width = bw;
+        canvas.height = bh;
+    }
+    logicalWidth = w;
+    logicalHeight = h;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.transform = 'none';
+    canvas.style.webkitTransform = 'none';
+    canvas.style.margin = '0';
+    canvas.style.padding = '0';
+    if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr); }
+    window.scrollTo(0, 0);
+    return true;
+}
+
 function restoreGameStateAfterAd() {
     // 🔥 Backup timeout varsa iptal et (event düzgün geldi demektir)
     if (window._backupRestoreTimeout) {
@@ -10338,38 +10301,11 @@ function restoreGameStateAfterAd() {
     COLS = stateToRestore.COLS;
     ROW_HEIGHT = stateToRestore.ROW_HEIGHT;
     
-    // Canvas stillerini ve backing store'u düzelt
-    if (canvas) {
-        const dpr = window.devicePixelRatio || 1;
-        
-        // 🔥 Canvas backing store'u kontrol et ve gerekirse düzelt
-        const expectedWidth = stateToRestore.canvasWidth || (logicalWidth * dpr);
-        const expectedHeight = stateToRestore.canvasHeight || (logicalHeight * dpr);
-        
-        if (canvas.width !== expectedWidth || canvas.height !== expectedHeight) {
-            console.log(`🔧 [AD] Canvas backing store düzeltiliyor: ${canvas.width}x${canvas.height} -> ${expectedWidth}x${expectedHeight}`);
-            canvas.width = expectedWidth;
-            canvas.height = expectedHeight;
-        }
-        
-        // Stil düzeltmeleri
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.width = logicalWidth + 'px';
-        canvas.style.height = logicalHeight + 'px';
-        canvas.style.transform = 'none';
-        canvas.style.webkitTransform = 'none';
-        canvas.style.margin = '0';
-        canvas.style.padding = '0';
-        
-        // Context transform'u yeniden ayarla
-        if (ctx) {
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-        }
-    }
-    
+    // 🎯 Canvas'ı bayat snapshot yerine CANLI pencereden boyutlandır (çözünürlük
+    // düşmesini önler). Grid layout değerleri yukarıda bellek state'inden zaten
+    // geri yüklendi; reklam viewport'u değiştirmediği için tutarlıdır.
+    syncCanvasToWindow('ad-restore');
+
     // Scroll sıfırla - AGRESIF
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
