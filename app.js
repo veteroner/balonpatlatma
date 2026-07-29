@@ -7314,8 +7314,11 @@ function drawGrid() {
     const maxY = logicalHeight + margin;
     
     grid.forEach((row, r) => {
-        const maxC = isOddRow(r) ? COLS - 2 : COLS - 1;
-        for (let c = 0; c <= maxC; c++) {
+        // 🐛 FIX: TÜM sütunları çiz. Eski kod odd satırlarda COLS-1'i atlıyordu
+        // (maxC = COLS-2) ama grid dolumu oraya balon koyuyordu -> o balonlar
+        // GÖRÜNMEZ kalıp "sağ kenarda gizli toplar" oluşturuyor, diğerlerini
+        // asılı gösteriyordu. Viewport culling gerçek ekran-dışını zaten atlar.
+        for (let c = 0; c < COLS; c++) {
             if (row[c]) {
                 const coords = getBubbleCoords(r, c);
                 // Viewport dışındaki balonları atla
