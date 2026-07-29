@@ -36,8 +36,6 @@ const UNITY_ADS_CONFIG = {
     // Ad Unit IDs (Placement IDs)
     // Production modda dashboard'dan oluşturulan custom placement'lar
     placements: {
-        banner: 'Banner_Android',
-        bannerIOS: 'Banner_iOS',
         interstitial: 'Interstitial_Android',
         interstitialIOS: 'Interstitial_iOS',
         rewarded: 'Rewarded_Android',
@@ -275,12 +273,7 @@ window.AD_MEDIATION = {
         console.log(`🎯 [UNITY] Using npm package for ${adType}`);
         
         try {
-            if (adType === 'banner') {
-                // npm package doesn't support banners, throw to fallback to AdMob
-                console.warn('⚠️ [UNITY] Banner not supported by npm package, using AdMob fallback');
-                throw new Error('Banner not supported by Unity Ads npm package');
-                
-            } else if (adType === 'interstitial') {
+            if (adType === 'interstitial') {
                 console.log(`🎯 [UNITY] Attempting to show interstitial...`);
                 
                 // 🔒 Reklam gösterilmeden önce oyun state'ini kaydet
@@ -474,29 +467,34 @@ window.AD_MEDIATION = {
         console.log(`📱 [ADMOB] Test Mode: ${ADMOB_CONFIG.testMode}`);
         console.log(`📱 [ADMOB] AdMobPlugin available:`, !!AdMobPlugin);
         
-        if (AdMobPlugin) {
-            if (adType === 'banner') {
-                console.log(`📱 [ADMOB] Calling showBanner with adId: ${adId}, position: ${options.position || 'BOTTOM'}`);
-                await AdMobPlugin.showBanner({ adId, position: options.position || 'BOTTOM' });
-                console.log(`📱 [ADMOB] Banner success`);
-                return { success: true };
-            } else if (adType === 'interstitial') {
-                console.log(`📱 [ADMOB] Calling showInterstitial with adId: ${adId}`);
-                await AdMobPlugin.showInterstitial({ adId });
+        // ÖNEMLİ: Burada window.AdMobPlugin sarmalayıcısı KASITLI OLARAK
+        // kullanılmıyor. O sarmalayıcının showInterstitialAd/showRewardedAd
+        // metodları KENDİLERİ AD_MEDIATION.showAdWithFallback(...)'ı çağırıyor
+        // — showAdMobAd zaten showAdWithFallback tarafından çağrıldığı için bu
+        // sonsuz özyinelemeye (RangeError: Maximum call stack size exceeded)
+        // yol açıyordu: showAdWithFallback → showAdMobAd → AdMobPlugin.showX →
+        // showAdWithFallback → ... Bu yüzden burada doğrudan ham AdMob
+        // eklentisi çağrılıyor, mediation katmanına asla geri dönülmüyor.
+        if (AdMob) {
+            if (adType === 'interstitial') {
+                console.log(`📱 [ADMOB] prepareInterstitial + showInterstitial (doğrudan)`);
+                await AdMob.prepareInterstitial({ adId, isTesting: ADMOB_CONFIG.testMode });
+                await AdMob.showInterstitial();
                 console.log(`📱 [ADMOB] Interstitial success`);
                 return { success: true };
             } else if (adType === 'rewarded') {
-                console.log(`📱 [ADMOB] Calling showRewardedVideo with adId: ${adId}`);
-                const result = await AdMobPlugin.showRewardedVideo({ adId });
-                console.log(`📱 [ADMOB] Rewarded result:`, result);
-                
-                // Handle reward callback if provided
-                if (result && result.rewarded && options.onRewarded && typeof options.onRewarded === 'function') {
+                console.log(`📱 [ADMOB] prepareRewardVideoAd + showRewardVideoAd (doğrudan)`);
+                await AdMob.prepareRewardVideoAd({ adId, isTesting: ADMOB_CONFIG.testMode });
+                const result = await AdMob.showRewardVideoAd();
+                const rewarded = !!result;
+                console.log(`📱 [ADMOB] Rewarded result:`, rewarded);
+
+                if (rewarded && options.onRewarded && typeof options.onRewarded === 'function') {
                     console.log('✅ [ADMOB] Calling reward callback');
                     options.onRewarded();
                 }
-                
-                return { success: true, rewarded: result.rewarded };
+
+                return { success: true, rewarded };
             }
         }
         console.error(`❌ [ADMOB] AdMob not available for ${adType}`);
@@ -518,12 +516,6 @@ const ADMOB_CONFIG = {
         console.log(`🚀 [PRODUCTION] Using REAL AdMob Ad Units`);
         
         return useTestMode;
-    },
-    
-    // Banner Ad IDs - PRODUCTION ONLY
-    banner: {
-        ios: 'ca-app-pub-7610338885240453/2144790251',
-        android: 'ca-app-pub-7610338885240453/2502274015'
     },
     
     // Interstitial Ad IDs - PRODUCTION ONLY
@@ -579,81 +571,6 @@ try {
 const showIOSToast = (title, message, type = 'info') => {
     // No-op in production: suppress all toast popups
     return;
-};
-
-// Safe banner helper: Unity Ads Primary, AdMob Fallback
-// Usage: window.safeShowBanner('BOTTOM_CENTER' | 'TOP_CENTER')
-window.safeShowBanner = async (position = 'BOTTOM_CENTER') => {
-    try {
-        console.log('🎯 [BANNER MEDIATION] ==================== START ====================');
-        console.log('🎯 [BANNER MEDIATION] Position:', position);
-        
-        const cap = window.Capacitor;
-        if (!cap || !cap.isNativePlatform?.()) {
-            console.log('🎯 [BANNER] Skipped - Not native platform');
-            return;
-        }
-        
-        const platform = cap.getPlatform?.();
-        
-        // 🎮 TRY UNITY ADS FIRST (PRIMARY)
-        if (window.UnityAdsBridge && window.UnityAdsBridge.isNativeReady) {
-            try {
-                const placementId = UNITY_ADS_CONFIG.getPlacementId('banner', platform);
-                console.log(`🎮 [UNITY BANNER] Trying Unity Ads banner first...`);
-                console.log(`🎮 [UNITY BANNER] Placement ID: ${placementId}`);
-                
-                await window.UnityAdsBridge.showBanner(placementId, position);
-                console.log('✅ [UNITY BANNER] Unity Ads banner shown successfully');
-                AD_MEDIATION.markAvailable('unity', true);
-                return;
-            } catch (unityError) {
-                console.error('❌ [UNITY BANNER] Unity Ads failed:', unityError);
-                AD_MEDIATION.logError('unity', unityError);
-                console.log('🔄 [BANNER MEDIATION] Falling back to AdMob...');
-            }
-        } else {
-            console.log('⚠️ [UNITY BANNER] Unity Ads not ready, falling back to AdMob');
-        }
-        
-        // 📱 FALLBACK TO ADMOB
-        const capAdMob = AdMob || cap?.Plugins?.AdMob;
-        if (!capAdMob) {
-            console.error('❌ [BANNER] No ad network available');
-            return;
-        }
-        
-        // Get banner ad ID from config (test or production)
-        const adId = ADMOB_CONFIG.getAdId('banner', platform);
-        const isTesting = ADMOB_CONFIG.testMode;
-        
-        const options = {
-            adId,
-            adSize: 'BANNER',
-            position: position,
-            isTesting,
-            margin: 0,
-            // Hint for plugins that support it; safely ignored otherwise
-            backgroundColor: 'transparent'
-        };
-        console.log('📱 [ADMOB BANNER] Calling AdMob.showBanner with options:', options);
-        if (options.isTesting) console.log('🧪 safeShowBanner running in TEST mode');
-        try { await capAdMob.hideBanner?.(); } catch(_) { /* ignore */ }
-        await capAdMob.showBanner(options);
-        // Try to force transparent background if the plugin exposes a view element
-        try {
-            const el = document.getElementById('bottomBannerAd');
-            if (el) {
-                el.style.background = 'transparent';
-                el.style.minHeight = '0px';
-                el.style.margin = '0';
-            }
-        } catch(_) {}
-        console.log('✅ [ADMOB BANNER] AdMob banner shown successfully');
-        AD_MEDIATION.markAvailable('admob', true);
-    } catch (e) {
-        console.error('❌ [BANNER] All banner attempts failed:', e);
-    }
 };
 
 // Capacitor Status Bar Control and AdMob Setup
@@ -1050,15 +967,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 setTimeout(async () => {
                                     const afterStatus = await AdMob.trackingAuthorizationStatus();
                                     console.log('✅ ATT Status after request:', afterStatus.status);
-                                    alert('ATT Request completed. Status: ' + afterStatus.status);
                                 }, 1000);
                             } else {
                                 console.log('ℹ️ ATT already determined:', beforeStatus.status);
-                                alert('ATT already set to: ' + beforeStatus.status);
                             }
                         } catch (e) {
                             console.error('❌ ATT request error:', e);
-                            alert('ATT request failed: ' + e.message);
                         }
                     };
                     
@@ -1163,173 +1077,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // AndroidBridge ile native metodları çağır
             window.AdMobPlugin = {
-                // 🎯 UNIFIED INTERSTITIAL AD - Unity Primary, AdMob Fallback
-                showInterstitialAd: async () => {
-                    try {
-                        console.log('🚀 showInterstitialAd çağrılıyor (mediation)...');
-                        
-                        // 🔥 REKLAM ÖNCESİ STATE KAYDET
-                        if (typeof saveGameStateBeforeAd === 'function') {
-                            saveGameStateBeforeAd();
-                        }
-                        
-                        const activeNetwork = AD_MEDIATION.getActiveNetwork('interstitial');
-                        
-                        if (activeNetwork === 'unity') {
-                            // Unity Ads Interstitial - Native SDK
-                            try {
-                                const platform = window.Capacitor?.getPlatform?.();
-                                const placementId = UNITY_ADS_CONFIG.getPlacementId('interstitial', platform);
-                                
-                                console.log(`📺 [UNITY] Showing interstitial: ${placementId}`);
-                                
-                                // Call native Unity Ads bridge
-                                if (window.UnityAdsBridge) {
-                                    await window.UnityAdsBridge.showInterstitial(placementId);
-                                    console.log('✅ [UNITY] Interstitial shown successfully');
-                                } else {
-                                    throw new Error('Unity Ads Bridge not available');
-                                }
-                                
-                                return;
-                            } catch (error) {
-                                console.error('❌ [UNITY] Interstitial failed:', error);
-                                AD_MEDIATION.logError('unity', error);
-                                // Fall through to AdMob
-                            }
-                        }
-                        
-                        // AdMob Fallback
-                        if (activeNetwork === 'admob' || !activeNetwork) {
-                            if (window.AndroidBridge) {
-                                window.AndroidBridge.showInterstitialAd();
-                                console.log('✅ [ADMOB] Interstitial call sent (Android native)');
-                            } else if (AdMob) {
-                                const platform = window.Capacitor?.getPlatform?.();
-                                const adId = ADMOB_CONFIG.getAdId('interstitial', platform);
-                                const isTesting = ADMOB_CONFIG.testMode;
-                                
-                                await AdMob.showInterstitial({
-                                    adId: adId,
-                                    isTesting: isTesting
-                                });
-                                console.log('✅ [ADMOB] Interstitial shown');
-                            } else {
-                                console.warn('⚠️ No ad network available for interstitial');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('❌ Failed to show interstitial ad:', error);
-                    }
-                },
-                
-                // 🎯 UNIFIED REWARDED AD - Unity Primary, AdMob Fallback
-                showRewardedAd: async (onRewarded) => {
-                    try {
-                        console.log('🎁 showRewardedAd çağrılıyor (mediation)...');
-                        
-                        // 🔥 REKLAM ÖNCESİ STATE KAYDET
-                        if (typeof saveGameStateBeforeAd === 'function') {
-                            saveGameStateBeforeAd();
-                        }
-                        
-                        const activeNetwork = AD_MEDIATION.getActiveNetwork('rewarded');
-                        
-                        if (activeNetwork === 'unity') {
-                            // Unity Ads Rewarded - Native SDK
-                            try {
-                                const platform = window.Capacitor?.getPlatform?.();
-                                const placementId = UNITY_ADS_CONFIG.getPlacementId('rewarded', platform);
-                                
-                                console.log(`🎁 [UNITY] Showing rewarded: ${placementId}`);
-                                
-                                // Call native Unity Ads bridge
-                                if (window.UnityAdsBridge) {
-                                    const result = await window.UnityAdsBridge.showRewarded(placementId);
-                                    
-                                    // Check if user completed the ad
-                                    if (result && result.rewarded) {
-                                        console.log('✅ [UNITY] Rewarded ad completed - user gets reward');
-                                        if (onRewarded && typeof onRewarded === 'function') {
-                                            onRewarded();
-                                        }
-                                    } else {
-                                        console.log('ℹ️ [UNITY] Rewarded ad not completed - no reward');
-                                    }
-                                } else {
-                                    throw new Error('Unity Ads Bridge not available');
-                                }
-                                
-                                return;
-                            } catch (error) {
-                                console.error('❌ [UNITY] Rewarded ad failed:', error);
-                                AD_MEDIATION.logError('unity', error);
-                                // Fall through to AdMob
-                            }
-                        }
-                        
-                        // AdMob Fallback
-                        if (activeNetwork === 'admob' || !activeNetwork) {
-                            if (AdMob) {
-                                const platform = window.Capacitor?.getPlatform?.();
-                                const adId = ADMOB_CONFIG.getAdId('rewarded', platform);
-                                const isTesting = ADMOB_CONFIG.testMode;
-                                
-                                const result = await AdMob.showRewardedVideo({
-                                    adId: adId,
-                                    isTesting: isTesting
-                                });
-                                
-                                if (result && result.rewarded) {
-                                    console.log('✅ [ADMOB] Rewarded ad completed');
-                                    if (onRewarded && typeof onRewarded === 'function') {
-                                        onRewarded();
-                                    }
-                                }
-                            } else {
-                                console.warn('⚠️ No ad network available for rewarded ad');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('❌ Failed to show rewarded ad:', error);
-                    }
-                },
-                
                 showSplashAd: async () => {
                     // Devre dışı: Splash sırasında interstitial tetiklenmeyecek
                     console.log('ℹ️ showSplashAd çağrısı politika gereği devre dışı');
                     return;
                 },
-                
-                // 🎯 UNIFIED BANNER AD - Unity Primary, AdMob Fallback
-                showBannerAd: async (position = 'BOTTOM_CENTER') => {
-                    try {
-                        console.log('🎯 [BANNER] ==================== START (MEDIATION) ====================');
-                        console.log('🎯 [BANNER] Position:', position, '| Time:', new Date().toISOString());
-                        console.log('🎯 [BANNER] AD_MEDIATION available:', !!AD_MEDIATION);
-                        console.log('🎯 [BANNER] showAdWithFallback available:', !!AD_MEDIATION.showAdWithFallback);
-                        
-                        // Use the new mediation system
-                        const result = await AD_MEDIATION.showAdWithFallback('banner', { position });
-                        console.log('🎯 [BANNER] Mediation result:', result);
-                        return result;
-                        
-                    } catch (error) {
-                        console.error('❌ [BANNER] Failed to show banner:', error);
-                        console.error('❌ [BANNER] Error details:', error.message, error.stack);
-                        
-                        // Fallback to old system if mediation fails
-                        try {
-                            console.log('🔄 [BANNER] Trying fallback system...');
-                            await window.safeShowBanner(position);
-                            console.log('✅ [BANNER] Fallback success');
-                        } catch (fallbackError) {
-                            console.error('❌ [BANNER] Fallback also failed:', fallbackError);
-                        }
-                    }
-                },
-                
-                // 🎯 UNIFIED INTERSTITIAL AD - Unity Primary, AdMob Fallback  
+
+                // 🎯 UNIFIED INTERSTITIAL AD - Unity Primary, AdMob Fallback
                 showInterstitialAd: async () => {
                     try {
                         console.log('🚀 [INTERSTITIAL] ==================== START (MEDIATION) ====================');
@@ -1462,14 +1216,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 if (AdMob) {
                                     const platform = window.Capacitor?.getPlatform?.();
                                     const adId = ADMOB_CONFIG.getAdId('rewarded', platform);
-                        const isTesting = ADMOB_CONFIG.testMode;
-                        
-                                    const result = await AdMob.showRewardedVideo({
+                                    const isTesting = ADMOB_CONFIG.testMode;
+
+                                    // ÖNEMLİ: gerçek metod isimleri prepareRewardVideoAd/
+                                    // showRewardVideoAd'dir (showRewardedVideo eklentide yok).
+                                    await AdMob.prepareRewardVideoAd({
                                         adId: adId,
-                            isTesting: isTesting
+                                        isTesting: isTesting
                                     });
-                                    
-                                    if (result && result.rewarded) {
+                                    const result = await AdMob.showRewardVideoAd();
+
+                                    if (result) {
                                         console.log('✅ [ADMOB] Rewarded ad completed');
                                         if (onRewarded && typeof onRewarded === 'function') {
                                             onRewarded();
@@ -1483,15 +1240,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                             console.error('❌ [REWARDED] Fallback also failed:', fallbackError);
                         }
                     }
-                },
-                
-                // Legacy function for backward compatibility
-                showInterstitialAd: async () => {
-                    return await this.showInterstitialAd();
-                },
-                
-                showRewardedAd: async (onRewarded) => {
-                    return await this.showRewardedAd(onRewarded);
                 }
             };
             
@@ -1514,9 +1262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Custom splash screen DOM'da zaten başlayacak
         console.log('✅ Native splash gizlendi, custom splash başlayabilir');
-        
-        // Banner reklamları custom splash tamamlandıktan sonra başlayacak
-        
+
         // Hızlı teşhis için global debug fonksiyonu
         window.debugAdEnv = async () => {
             try {
@@ -2841,6 +2587,7 @@ function ensureGridRow(rowIndex) {
     if (rowIndex >= ROWS) rowIndex = ROWS - 1;
     if (!grid[rowIndex] || !Array.isArray(grid[rowIndex])) {
         grid[rowIndex] = new Array(COLS).fill(null);
+        grid[rowIndex].parity = rowIndex % 2; // Yeni oluşturulan satır, o anki index'in hizasını alır
     } else if (grid[rowIndex].length < COLS) {
         grid[rowIndex].length = COLS;
         for (let i = 0; i < COLS; i++) {
@@ -2849,6 +2596,7 @@ function ensureGridRow(rowIndex) {
             }
         }
     }
+    if (typeof grid[rowIndex].parity !== 'number') grid[rowIndex].parity = rowIndex % 2;
     return grid[rowIndex];
 }
 
@@ -3224,8 +2972,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlayMenu = document.getElementById('overlayMenu');
     const startGameBtn = document.getElementById('startGameBtn');
     const restartButton = document.getElementById('restartButton');
-    const testBannerBtn = null; // Test banner butonu üretimde kaldırıldı
-    
+
     // Tüm buton elementlerini kontrol et
     const allButtons = document.querySelectorAll('button[id]');
     console.log('🔍 Sayfadaki tüm butonlar:', Array.from(allButtons).map(btn => ({
@@ -3234,19 +2981,15 @@ document.addEventListener('DOMContentLoaded', function() {
         visible: btn.offsetParent !== null,
         disabled: btn.disabled
     })));
-    
+
     console.log('🔍 Menü elementleri:', {
         menuToggle: !!menuToggle,
         closeMenu: !!closeMenu,
         overlayMenu: !!overlayMenu,
         startGameBtn: !!startGameBtn,
-        restartButton: !!restartButton,
-    testBannerBtn: !!testBannerBtn
+        restartButton: !!restartButton
     });
-    
-    // Üretimde test banner butonu oluşturulmaz
-    let actualTestBannerBtn = null;
-    
+
     // Çıkış butonu oluştur ve ekle
     const exitGameBtn = document.createElement('button');
     exitGameBtn.textContent = 'Oyundan Çık';
@@ -3331,9 +3074,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (e) {
                 console.warn('⚠️ Canvas temizlenirken hata:', e);
             }
-
-            // Gerekirse bannerı gizle (native)
-            try { window.Capacitor?.Plugins?.AdMob?.hideBanner?.(); } catch (_) {}
         } catch (e) {
             console.warn('⚠️ showStartScreenSafely failed:', e?.message || e);
         }
@@ -3478,8 +3218,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Test banner butonu kaldırıldığı için herhangi bir event bağlanmaz
-    
     // Çıkış butonu
     if (exitGameBtn) {
         exitGameBtn.addEventListener('click', () => {
@@ -3522,49 +3260,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Nasıl oynanır fonksiyonu
-function showHowToPlay() {
-    const helpText = `
-🎮 NASIL OYNANIR
-
-🎯 TEMEL OYUN:
-• Aynı renkteki balonları gruplandırıp patlatın
-• En az 2 balon yan yana olmalı
-• Büyük gruplar daha fazla puan verir
-
-🎲 OYUN MODLARI:
-
-🏛️ KLASİK MOD:
-• Sınırsız hamle hakkı
-• Rahat tempoda oynayın
-• Yüksek skor hedefleri
-
-🧠 STRATEJİ MODU:
-• 60 hamle sınırı
-• Her hamle sayılır
-• Dikkatli planlama gerekir
-
-⚡ ARCADE MODU:
-• 5 dakika süre sınırı
-• Hızlı karar verme
-• Sürekli aksiyon
-
-⭐ PUANLAMA:
-• 2 balon: 100 puan
-• 3 balon: 200 puan  
-• 4+ balon: 300+ puan
-• Combo bonusları
-
-🚀 POWER-UP'LAR:
-🎯 Rainbow: Herhangi renkle eşleşir
-🔥 Fireball: Büyük alan hasarı
-🔵 Yatay Lazer: Yatay çizgide tüm balonları yok eder
-⚡ Dikey Lazer: Dikey sütundaki 2 sütunu temizler
-
-İyi eğlenceler! 🎈
-    `;
-    
-    alert(helpText);
-}
+// NOT: showHowToPlay() burada tanımlanmıyor artık — index.html'deki inline
+// script (bkz. "NASIL OYNANIR: çirkin alert() yerine stilli modal" bloğu)
+// sayfa yüklenince window.showHowToPlay'i kendi cam-panel modal'ıyla
+// (#htpOverlay) değiştiriyor. O yüzden burada ikinci bir tanım tutmak sadece
+// asla çalışmayacak ölü kod olurdu.
 
 // İstatistik modal event listeners - artık mobil tab menüden erişiliyor
 
@@ -4298,8 +3998,8 @@ function onResize() {
     console.log(`✅ onResize COMPLETE: ${logicalWidth}x${logicalHeight}`);
 }
 
-// Banner yükleme durumu kontrolü
-let bannerLoadedInSession = false;
+// İlk oyun başlangıcı kontrolü (günlük bonus kontrolü sadece ilk başlangıçta yapılsın diye)
+let isFirstGameStartThisSession = false;
 
 function startGame(freshStart = false) {
     console.log(`🚀 startGame() çağrıldı! ${freshStart ? '(fresh start - Level 1)' : '(continue)'} lavaStock sıfırlanıyor.`);
@@ -4380,7 +4080,7 @@ function startGame(freshStart = false) {
     }
 
     // Daily bonus kontrolü yap - SADECE İLK BAŞLATMADA!
-    if (bannerLoadedInSession === false) {
+    if (isFirstGameStartThisSession === false) {
         // İlk defa oyun başlatılıyor, daily bonus kontrolü yap
         try {
             checkDailyBonusAvailable();
@@ -4388,8 +4088,6 @@ function startGame(freshStart = false) {
             console.warn('⚠️ Daily bonus check failed:', e);
         }
     }
-    
-    // Banner reklamları devre dışı - kullanıcı isteği üzerine kaldırıldı
     
     endScreen.style.display = 'none';
     
@@ -5354,14 +5052,18 @@ async function showRewardVideo(rewardCallback) {
         console.log(`📱 Platform: ${platform}`);
         
         try {
-            await AdMob.prepareRewardedAd({
+            // ÖNEMLİ: @capacitor-community/admob'un gerçek metod isimleri
+            // prepareRewardVideoAd/showRewardVideoAd'dir (prepareRewardedAd/
+            // showRewardedAd DEĞİL — bu isimler eklentide yok, bu yüzden
+            // "is not a function" hatası veriyordu).
+            await AdMob.prepareRewardVideoAd({
                 adId: rewardedAdId,
                 isTesting: isTesting
             });
-            
+
             console.log('✅ AdMob reward video prepared');
-            
-            const result = await AdMob.showRewardedAd();
+
+            const result = await AdMob.showRewardVideoAd();
             console.log('✅ AdMob reward video shown:', result);
             
             // Reklam gösterildikten sonra bir sonraki için yükle
@@ -5877,15 +5579,91 @@ function startSelectedLevel() {
 }
 
 // Shop modal göster
-function showShopModal() {
-    console.log('🛒 Shop açılıyor...');
-    // Shop modal'ı burada implement edilebilir
+// Mağazadaki her power-up'ın coin fiyatı
+const SHOP_PRICES = {
+    bomb: 50,
+    laser: 50,
+    freeze: 50,
+    rainbow: 70,
+    verticalLaser: 70,
+    fireball: 80
+};
+
+function renderShopModal() {
+    const modal = document.querySelector('#shopOverlay .shop-modal');
+    if (!modal) return;
+    const data = getLevelSelectionData();
+    const itemsHTML = Object.keys(SHOP_PRICES).map(type => {
+        const price = SHOP_PRICES[type];
+        const canAfford = data.totalCoins >= price;
+        return `
+            <div class="shop-item">
+                <div class="shop-item-icon">${getPowerBallEmoji(type)}</div>
+                <div class="shop-item-name">${getPowerBallName(type)}</div>
+                <div class="shop-item-stock">Stok: ${powerUpStock[type] || 0}</div>
+                <button class="shop-buy-btn" ${canAfford ? '' : 'disabled'} onclick="buyShopItem('${type}')">
+                    💰 ${price}
+                </button>
+            </div>`;
+    }).join('');
+
+    modal.innerHTML = `
+        <div class="shop-header">
+            <h2>🛒 Mağaza</h2>
+            <button class="shop-close" onclick="closeShopModal()" aria-label="Kapat">✕</button>
+        </div>
+        <div class="shop-coins"><span>💰</span> <b>${data.totalCoins}</b> coin</div>
+        <div class="shop-grid">${itemsHTML}</div>
+    `;
 }
 
-// Map modal göster
+function buyShopItem(type) {
+    const price = SHOP_PRICES[type];
+    const data = getLevelSelectionData();
+    if (!price || data.totalCoins < price) return;
+
+    data.totalCoins -= price;
+    saveLevelSelectionData(data);
+    addPowerUp(type, 1);
+    try { soundManager.play('combo'); } catch (_) {}
+
+    renderShopModal();
+    // Level seçim ekranındaki coin sayacı açıksa onu da güncelle
+    const coinsAmountEl = document.querySelector('.coins-amount');
+    if (coinsAmountEl) coinsAmountEl.textContent = data.totalCoins;
+}
+
+function showShopModal() {
+    const existing = document.getElementById('shopOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'shopOverlay';
+    overlay.className = 'shop-overlay';
+    overlay.innerHTML = '<div class="shop-modal"></div>';
+    document.body.appendChild(overlay);
+    renderShopModal();
+    setTimeout(() => overlay.classList.add('show'), 10);
+}
+
+function closeShopModal() {
+    const overlay = document.getElementById('shopOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('show');
+    setTimeout(() => overlay.remove(), 300);
+}
+
+// Harita: ayrı bir ekran yerine level yolunu geçerli/aktif seviyeye kaydırır
+// (level yolu zaten ana içerikte gösteriliyor — "harita" oradaki görünümdür)
 function showMapModal() {
-    console.log('🗺️ Map açılıyor...');
-    // Map modal'ı burada implement edilebilir
+    const container = document.querySelector('.level-grid-container');
+    const activeNode = container?.querySelector('.level-button.current')?.closest('.level-node')
+        || container?.querySelector('.level-button.unlocked')?.closest('.level-node');
+    if (!container || !activeNode) return;
+
+    activeNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    activeNode.classList.add('map-highlight');
+    setTimeout(() => activeNode.classList.remove('map-highlight'), 1200);
 }
 
 // Level selection modal'ını kapat
@@ -8051,6 +7829,12 @@ function getBubbleCoords(r, c) {
 }
 
 function isOddRow(r) {
+    // ÖNEMLİ: hizalama satırın DİZİ İNDEKSİNDEN değil, satırın kendi
+    // `.parity` özelliğinden okunur. shiftGridDown() yeni satır eklerken
+    // (grid[r] = grid[r-1]) tüm satırlar bir alt indekse kayar; hizalama
+    // index'e bağlı olsaydı her kayışta hex düzeni bozulur, balonlar üst
+    // üste biner ve komşuluk/eşleşme hesabı yanlış sonuç verirdi.
+    if (grid[r] && typeof grid[r].parity === 'number') return grid[r].parity === 1;
     return r % 2 !== 0;
 }
 
@@ -8137,7 +7921,10 @@ function onMouseDown(e) {
                     debugLog('clicks', `📺 Power-up ${hb.type} stokta yok, reklam gösteriliyor...`);
                     // Reklam izlettir ve başarılıysa power-up'ı ekle
                     window._pendingPowerUpReward = hb.type;
-                    AD_MEDIATION.showRewardedAd('rewarded', {
+                    // ÖNEMLİ: AD_MEDIATION'ın gerçek metod adı showAdWithFallback'dir
+                    // (showRewardedAd diye bir metodu yok — "is not a function" hatası
+                    // yüzünden reklam hiç gösterilmiyor ve power-up hiç kazanılmıyordu).
+                    AD_MEDIATION.showAdWithFallback('rewarded', {
                         onRewarded: () => {
                             console.log(`🎁 Reklam izlendi, ${window._pendingPowerUpReward} power-up kazanıldı!`);
                             addPowerUp(window._pendingPowerUpReward, 1);
@@ -8385,7 +8172,10 @@ function onTouchEnd(e) {
                     debugLog('touch', `📺 Power-up ${hb.type} stokta yok, reklam gösteriliyor...`);
                     // Reklam izlettir ve başarılıysa power-up'ı ekle
                     window._pendingPowerUpReward = hb.type;
-                    AD_MEDIATION.showRewardedAd('rewarded', {
+                    // ÖNEMLİ: AD_MEDIATION'ın gerçek metod adı showAdWithFallback'dir
+                    // (showRewardedAd diye bir metodu yok — "is not a function" hatası
+                    // yüzünden reklam hiç gösterilmiyor ve power-up hiç kazanılmıyordu).
+                    AD_MEDIATION.showAdWithFallback('rewarded', {
                         onRewarded: () => {
                             console.log(`🎁 Reklam izlendi, ${window._pendingPowerUpReward} power-up kazanıldı!`);
                             addPowerUp(window._pendingPowerUpReward, 1);
@@ -8726,7 +8516,36 @@ function updateBubblePosition(stepDt) {
 
 function snapBubbleToGrid() {
     currentBubble.isMoving = false;
-    let { r, c } = getGridPosFromCoords(currentBubble.x, currentBubble.y);
+
+    // ÖNEMLİ: çarpışma anında HANGİ balona değinildiği biliniyorsa
+    // (lastCollisionHint), iniş hücresi o balonun BOŞ KOMŞULARINDAN seçilir.
+    // Eskiden burada topun (x,y) konumundan bağımsız bir satır/sütun tahmini
+    // yapılıyordu (getGridPosFromCoords) — bu tahmin, gerçekte çarpılan
+    // balonla alakasız olabiliyor, özellikle duvardan sekme sonrası top
+    // çarptığı balonun yanına değil uzak bir satır/sütuna yerleşebiliyordu
+    // ("bir satır atlayıp" başka bir balonu patlatma hatası). Artık iniş
+    // noktası her zaman gerçekten dokunulan balona bitişik oluyor.
+    let r, c, usedHint = false;
+    if (lastCollisionHint) {
+        const hr = lastCollisionHint.r, hc = lastCollisionHint.c;
+        let bestR = -1, bestC = -1, bestD = Infinity;
+        for (const nb of getNeighbors(hr, hc)) {
+            const maxCForNb = isOddRow(nb.r) ? COLS - 2 : COLS - 1;
+            if (nb.c > maxCForNb || nb.c < 0) continue;
+            const row = ensureGridRow(nb.r);
+            if (row[nb.c]) continue;
+            const coords = getBubbleCoords(nb.r, nb.c);
+            const d = Math.hypot(currentBubble.x - coords.x, currentBubble.y - coords.y);
+            if (d < bestD) { bestD = d; bestR = nb.r; bestC = nb.c; }
+        }
+        if (bestR !== -1) {
+            r = bestR; c = bestC; usedHint = true;
+            debugLog('gameplay', `🎯 snapBubbleToGrid: collision-hint kullanıldı, çarpılan=(${hr},${hc}) -> yerleşim=(${r},${c})`);
+        }
+    }
+    if (!usedHint) {
+        ({ r, c } = getGridPosFromCoords(currentBubble.x, currentBubble.y));
+    }
     let rowRef = ensureGridRow(r);
 
     // Grid pozisyonu geçerli mi kontrol et - odd row'larda bir sütun daha az kullanılır
@@ -8996,9 +8815,13 @@ function snapBubbleToGrid() {
         }
     }
     
-    // Oyun bitişi: Balonlar alt sınıra (BOTTOM_MARGIN) çok yaklaştı mı?
+    // NOT: Bu Y-koordinat tabanlı eşik, ROWS küçük/bayat kaldığında (bazı
+    // cihazlarda gerçek oluyor) başlangıç dolgusuyla bile yanlışlıkla
+    // tetiklenebiliyordu. Asıl güvenilir "kaybettin" tetikleyicisi artık
+    // shiftGridDown() içindeki kapasite-taşması güvenlik ağı — bu kontrol
+    // kasıtlı olarak eskisi gibi pratikte erişilemez bırakıldı (zararsız).
     const gameOverThreshold = logicalHeight - BOTTOM_MARGIN - BUBBLE_RADIUS * 2;
-    
+
     debugLog('gameplay', `🔍 Game Over Check: lowestBubbleY=${lowestBubbleY.toFixed(1)}, threshold=${gameOverThreshold.toFixed(1)}`);
     
     if (lowestBubbleY >= gameOverThreshold) {
@@ -10059,22 +9882,44 @@ function shiftGridDown() {
         debugLog('gameplay', '⚠️ Game already over, skipping shiftGridDown');
         return;
     }
-    
+
+    // Kapasite dolduğunda atılacak en alt satırı kaydırmadan ÖNCE yakala.
+    // Aşağıdaki reachable eşik sayesinde normal oyunda bu satır zaten boş
+    // olmalı; ama dolu çıkarsa balonları sessizce silmek yerine kaybettir
+    // (güvenlik ağı — asıl app.js'te ROWS-1'i aşan satırlar başka türlü
+    // hiç kontrol edilmeden kaybolabiliyordu).
+    const discardedRow = grid[ROWS - 1];
+
+    // Yeni üst satırın hizası: mevcut 0. satırın (kaydıktan sonra 1. satır
+    // olacak) TERSİ olmalı — aksi halde hex örgüsü bir satır kayışta bozulur.
+    const oldRow0Parity = (grid[0] && typeof grid[0].parity === 'number') ? grid[0].parity : 0;
+    const newRowParity = oldRow0Parity === 1 ? 0 : 1;
+
     for(let r=ROWS-1; r>0; r--) {
         grid[r] = grid[r-1];
     }
     // Yeni satır oluştur - sadece normal balonlar
     const newRow = [];
+    newRow.parity = newRowParity;
     const maxC = COLS - 1;
     for(let c=0;c<=maxC;c++) {
-        // Yeni satırın hizası 0. satıra göre
-        if(isOddRow(0) && c===maxC) { newRow[c]=null; continue; }
+        // Yeni satırın hizası (index'ten değil, hesaplanan newRowParity'den)
+        if(newRowParity === 1 && c===maxC) { newRow[c]=null; continue; }
         // Yukarıdan gelen balonlar sadece normal renk olmalı
         newRow[c] = {color:getRandomColor(),type:'normal'};
     }
     grid[0] = newRow;
 
-    // ✨ YENİ: Koordinat bazlı oyun bitişi kontrolü
+    if (discardedRow && discardedRow.some(cell => !!cell)) {
+        debugLog('gameplay', '⚠️ shiftGridDown: kapasite dolu, atılan satırda balon var — oyun bitiyor');
+        gameState = 'gameover';
+        soundManager.play('gameOver');
+        showEndScreen('lose');
+        restartBtn.style.display = 'inline-block';
+        return;
+    }
+
+    // ✨ Koordinat bazlı oyun bitişi kontrolü
     // Grid'deki en alt balonun Y koordinatını bul
     let lowestBubbleY = 0;
     for (let row = 0; row < grid.length; row++) {
@@ -10088,10 +9933,14 @@ function shiftGridDown() {
             }
         }
     }
-    
-    // Oyun bitişi: Balonlar alt sınıra (BOTTOM_MARGIN) çok yaklaştı mı?
+
+    // NOT: Bu Y-koordinat tabanlı kontrol pratikte erişilemez (zararsız) —
+    // gerçek "kaybettin" tetikleyicisi yukarıdaki discardedRow güvenlik ağı.
+    // ROWS bazı cihazlarda küçük/bayat kalabildiğinden, bunu "erişilebilir"
+    // bir satıra bağlamaya çalışmak başlangıç dolgusuyla bile yanlış pozitif
+    // (anında kaybetme) riski taşıyordu — bkz. yukarısı.
     const gameOverThreshold = logicalHeight - BOTTOM_MARGIN - BUBBLE_RADIUS * 2;
-    
+
     if (lowestBubbleY >= gameOverThreshold) {
         debugLog('gameplay', `⚠️ shiftGridDown: Balonlar kritik seviyeye ulaştı! lowestY=${lowestBubbleY.toFixed(1)}, threshold=${gameOverThreshold.toFixed(1)}`);
         debugLog('gameplay', `🎮 Game over durumu: gameState=${gameState} -> gameover`);
@@ -10182,16 +10031,16 @@ function updateAimPath(force = false) {
         // PERF: only scan nearby grid cells for collision
         const rApprox = Math.round((y - gridOffsetY) / ROW_HEIGHT);
         const rSafe = Math.max(0, Math.min(ROWS - 1, rApprox));
-        const cOffset = (rSafe % 2 !== 0) ? BUBBLE_RADIUS : 0;
+        const cOffset = isOddRow(rSafe) ? BUBBLE_RADIUS : 0;
         const cApprox = Math.round((x - gridOffsetX - cOffset) / (BUBBLE_RADIUS * 2));
-        const maxCForRow = (rSafe % 2 !== 0) ? (COLS - 2) : (COLS - 1);
+        const maxCForRow = isOddRow(rSafe) ? (COLS - 2) : (COLS - 1);
         const cSafe = Math.max(0, Math.min(maxCForRow, cApprox));
         const rMin = Math.max(0, rSafe - 3);
         const rMax = Math.min(ROWS - 1, rSafe + 3);
 
         for (let r = rMin; r <= rMax; r++) {
             if (!grid[r]) continue;
-            const maxC = (r % 2 !== 0) ? (COLS - 2) : (COLS - 1);
+            const maxC = isOddRow(r) ? (COLS - 2) : (COLS - 1);
             const cMin = Math.max(0, cSafe - 4);
             const cMax = Math.min(maxC, cSafe + 4);
             for (let c = cMin; c <= cMax; c++) {
@@ -10399,19 +10248,24 @@ function showPowerBallModal(type) {
     // Reklam izle butonu
     modalAdBtn.onclick = async () => {
         console.log(`📺 ${type} için reklam gösteriliyor...`);
-        
+
         // Butonu devre dışı bırak
         modalAdBtn.style.opacity = '0.5';
         modalAdBtn.style.pointerEvents = 'none';
-        
+
         try {
-            // 🔥 SADECE EVENT'E GÜVEN - Callback kullanma
-            // Unity Ads Bridge delayed event (1s) otomatik olarak ödülü verecek
-            console.log(`🎯 [MODAL] showRewardVideo çağrılıyor (callback yok, sadece event)...`);
-            
-            // 🔥 Callback olmadan showRewardVideo çağır
-            const adShown = await showRewardVideo(null);
-            
+            // ÖNEMLİ: Eskiden burada callback GÖNDERİLMİYORDU — sadece Unity
+            // Ads Bridge'in ~1sn sonra dispatch ettiği varsayılan
+            // "unityRewardedComplete" event'ine güveniliyordu. Ancak bu event
+            // kod tabanının HİÇBİR YERİNDE dispatchEvent ile tetiklenmiyor —
+            // Unity Ads projede yok, sadece AdMob var. Bu yüzden reklam
+            // (AdMob üzerinden) başarıyla tamamlanıyor ama modal hiç
+            // kapanmıyor, güç-topu hiç eklenmiyordu. Artık ödül doğrudan
+            // callback ile veriliyor (empty power-up akışıyla aynı desen).
+            console.log(`🎯 [MODAL] showRewardVideo çağrılıyor (doğrudan callback ile)...`);
+
+            const adShown = await showRewardVideo(() => grantPendingPowerball(type, info));
+
             if (!adShown) {
                 console.warn('⚠️ Reklam gösterilemedi');
                 modalAdBtn.style.opacity = '1';
@@ -11787,7 +11641,6 @@ class AdManager {
             // Açılışta interstitial/app-open gösterimi kaldırıldı (policy-safe)
         } else {
             // Web environment - use AdSense fallback
-            this.initBannerAds();
             this.initInterstitialAd();
         }
     }
@@ -11914,43 +11767,24 @@ class AdManager {
                         this.queueInterstitialPrepare(this.interstitialBackoffMs || 4000);
                     });
                     
-                    // Banner ad event listeners
-                    AdMob.addListener('bannerAdLoaded', (info) => {
-                        debugLog('ads', '🟢 Banner ad loaded successfully:', info);
-                    });
-                    AdMob.addListener('bannerAdFailedToLoad', (error) => {
-                        if (DEBUG_FLAGS.ads) {
-                            console.error('🔴 Banner ad failed to load:', error);
-                            console.error('🔴 Banner load error details:', JSON.stringify(error, null, 2));
-                        } else {
-                            console.warn(`🔴 Banner failed to load: ${error?.message || 'unknown error'}`);
-                        }
-                    });
-                    AdMob.addListener('bannerAdShowed', (info) => {
-                        debugLog('ads', '🟢 Banner ad shown successfully:', info);
-                    });
-                    AdMob.addListener('bannerAdHidden', (info) => {
-                        debugLog('ads', '🟡 Banner ad hidden:', info);
-                    });
-                    
                     // Rewarded video ad event listeners
-                    AdMob.addListener('rewardedVideoAdLoaded', () => {
+                    AdMob.addListener('onRewardedVideoAdLoaded', () => {
                         debugLog('ads', '🟢 Rewarded video ad loaded successfully');
                     });
-                    AdMob.addListener('rewardedVideoAdFailedToLoad', (error) => {
+                    AdMob.addListener('onRewardedVideoAdFailedToLoad', (error) => {
                         if (DEBUG_FLAGS.ads) {
                             console.error('🔴 Rewarded video failed to load:', error);
                         } else {
                             console.warn(`🔴 Rewarded video failed to load: ${error?.message || 'unknown error'}`);
                         }
                     });
-                    AdMob.addListener('rewardedVideoAdShowed', (info) => {
+                    AdMob.addListener('onRewardedVideoAdShowed', (info) => {
                         debugLog('ads', '🟢 Rewarded video ad shown successfully:', info);
                     });
-                    AdMob.addListener('rewardedVideoAdDismissed', (info) => {
+                    AdMob.addListener('onRewardedVideoAdDismissed', (info) => {
                         debugLog('ads', '🟡 Rewarded video ad dismissed:', info);
-                        console.log('🔧 [ADMOB] ========== VIEWPORT FIX TRIGGERED (rewardedVideoAdDismissed) ==========');
-                        
+                        console.log('🔧 [ADMOB] ========== VIEWPORT FIX TRIGGERED (onRewardedVideoAdDismissed) ==========');
+
                         // ✅ AGGRESSIVE FIX: Reklam sonrası viewport düzeltmesi
                         if (typeof fixViewportAfterAd === 'function') {
                             console.log('🔧 [ADMOB] Calling fixViewportAfterAd()...');
@@ -11958,11 +11792,11 @@ class AdManager {
                         } else {
                             console.error('❌ [ADMOB] fixViewportAfterAd function not found!');
                         }
-                        
+
                         // Oyunu devam ettir
                         try { resumeGameplayAfterReward(); } catch (_) {}
                     });
-                    AdMob.addListener('rewardedVideoAdCompleted', (info) => {
+                    AdMob.addListener('onRewardedVideoAdReward', (info) => {
                         debugLog('ads', '✅ Rewarded video ad completed:', info);
                     });
                     
@@ -12099,10 +11933,11 @@ class AdManager {
                 this.interstitialBackoffMs = 0;
                 
                 // Wait a bit and check if it's ready
+                // NOT: AdMob.isInterstitialReady() eklentide yok (her zaman throw
+                // ederdi); this.interstitialReady zaten yukarıda true'ya set edildi.
                 setTimeout(async () => {
                     try {
-                        const readyCheck = await AdMob.isInterstitialReady();
-                        debugLog('ads', '🔍 Interstitial ready check after prepare:', readyCheck);
+                        debugLog('ads', '🔍 Interstitial ready check after prepare:', this.interstitialReady);
                     } catch (e) {
                         if (DEBUG_FLAGS.ads) {
                             console.error('❌ Ready check failed:', e);
@@ -12276,23 +12111,13 @@ class AdManager {
 
     async isAdReady() {
         if (this.isCapacitorEnvironment) {
-            try {
-                const { Capacitor } = window;
-                if (Capacitor && Capacitor.Plugins && Capacitor.Plugins.AdMob) {
-                    const result = await Capacitor.Plugins.AdMob.isInterstitialReady();
-                    debugLog('ads', '🔍 Ad readiness check result:', result);
-                    // Normalize various plugin return shapes
-                    return (result && (result.ready || result.isReady || result.adReady || result.isLoaded)) ? true : false;
-                } else {
-                    debugLog('ads', '❌ AdMob plugin not available for readiness check');
-                    return false;
-                }
-            } catch (error) {
-                if (DEBUG_FLAGS.ads) {
-                    console.error('❌ Failed to check ad readiness:', error);
-                }
-                return false;
-            }
+            // ÖNEMLİ: @capacitor-community/admob'da isInterstitialReady diye bir
+            // metod yok — çağrılırsa her zaman throw edip catch'e düşer ve bu
+            // fonksiyon sürekli false dönerdi (interstitial'ın oyun sonunda hiç
+            // gösterilmemesine yol açan sessiz bir hataydı). Zaten doğru tutulan
+            // this.interstitialReady bayrağını (prepareInterstitialAd başarılı
+            // olunca true olur) doğrudan kullanmak yeterli ve güvenilir.
+            return !!this.interstitialReady;
         }
         debugLog('ads', '⚠️ Web environment - returning true for ad ready');
         return true; // Always return true for web environment
@@ -12335,18 +12160,6 @@ class AdManager {
         }
 
         return true;
-    }
-
-    initBannerAds() {
-        // Banner reklamları yükle (sadece web için)
-        try {
-            // Web AdSense kaldırıldı
-            debugLog('ads', 'Banner reklamları yüklendi');
-        } catch (e) {
-            if (DEBUG_FLAGS.ads) {
-                console.log('Banner reklam yüklenemedi:', e);
-            }
-        }
     }
 
     initInterstitialAd() {
@@ -13092,71 +12905,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDailyLoginUI();
     updateChapterUI();
 });
-
-// 🚀 Global Debug ve Test Fonksiyonları
-// Console'dan banner reklamı test etmek için (Production'da devre dışı)
-window.testBannerAdConsole = async () => {
-    console.log('⚠️ testBannerAdConsole production modunda devre dışı!');
-    console.log('💡 Bu fonksiyon sadece development ortamında çalışır.');
-    return { success: false, message: 'Production mode - test disabled' };
-};
-
-// Banner reklamı gizleme fonksiyonu
-window.hideBannerAdConsole = async () => {
-    console.log('🔄 Banner gizleme (console)...');
-    
-    try {
-        const { AdMob } = await import('@capacitor-community/admob');
-        await AdMob.hideBanner();
-        console.log('✅ Banner başarıyla gizlendi!');
-        
-        if (window.showIOSToast) {
-            showIOSToast('Banner Gizlendi!', '✅ Banner reklam gizlendi', 'info');
-        }
-        
-        return { success: true };
-    } catch (error) {
-        console.error('❌ Banner gizleme hatası:', error);
-        
-        if (window.showIOSToast) {
-            showIOSToast('Gizleme Hatası!', `❌ ${error.message}`, 'error');
-        }
-        
-        return { success: false, error: error.message };
-    }
-};
-
-// Debug: Menü butonunu bul ve tıkla
-window.findAndClickBannerButton = () => {
-    console.log('🔍 Banner butonunu arıyor...');
-    
-    const btn = document.getElementById('testBannerBtn');
-    
-    if (btn) {
-        console.log('✅ Banner butonu bulundu:', {
-            id: btn.id,
-            text: btn.textContent.trim(),
-            visible: btn.offsetParent !== null,
-            disabled: btn.disabled,
-            style: btn.style.display
-        });
-        
-        console.log('🖱️ Banner butonuna tıklanıyor...');
-        btn.click();
-        return true;
-    } else {
-        console.warn('❌ Banner butonu bulunamadı!');
-        console.log('🔍 Mevcut butonlar:', Array.from(document.querySelectorAll('button[id]')).map(b => b.id));
-        return false;
-    }
-};
-
-console.log('🚀 Global banner test fonksiyonları hazır:');
-console.log('  • window.testBannerAdConsole() - Banner reklam test et');
-console.log('  • window.hideBannerAdConsole() - Banner reklam gizle');
-console.log('  • window.findAndClickBannerButton() - Banner test butonunu bul ve tıkla');
-console.log('  • window.debugBannerButton() - Banner butonu debug (yukarda tanımlı)');
-console.log('  • window.testBannerAdGlobal() - Global banner test (yukarda tanımlı)');
 
 // 🎮 AUTO-START GAME - Initialize after all functions are defined
 // REMOVED: Auto-start moved to index.html after splash completes
