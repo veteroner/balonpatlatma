@@ -7,7 +7,7 @@
  */
 
 // Sürümü her yayında artır (eski cache'leri otomatik temizler)
-const CACHE_NAME = 'popgo-cache-v3';
+const CACHE_NAME = 'popgo-cache-v4';
 
 const CORE_ASSETS = [
   '.',

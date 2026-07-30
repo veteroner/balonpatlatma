@@ -1534,6 +1534,22 @@ const FIREBALL_COLOR = '#FF9100'; // Neon turuncu ateş topu
 const BOTTOM_MARGIN_DEFAULT = 150;
 let BOTTOM_MARGIN = BOTTOM_MARGIN_DEFAULT;
 
+// .power-ball-bar (DOM) canvas'ın ALT kısmını kapatıyor: 'position: fixed;
+// bottom: 0'. Canvas artık tüm viewport'u kapladığı için alta yaslı çizimlerin
+// (shooter, zemin, kovalar, LEVEL/SKOR) bu barın ÜSTÜNDE kalması gerekiyor;
+// aksi halde barın arkasına girip görünmez oluyorlar. Barın gerçek yüksekliğini
+// DOM'dan ölç -> CSS değişirse otomatik uyum sağlar.
+function getPowerBarHeight() {
+    try {
+        const pb = document.getElementById('powerBallBar');
+        if (pb) {
+            const h = Math.round(pb.getBoundingClientRect().height);
+            if (h > 10 && h < 300) return h;
+        }
+    } catch (_) {}
+    return 80; // CSS varsayılanı (.power-ball-bar height: 80px)
+}
+
 // --- 🌌 NEBULA + YÜZEN PARÇACIKLAR ARKA PLAN SİSTEMİ ---
 
 // Nebula bulutları - yavaş hareket eden renkli bulutlar
@@ -3162,6 +3178,16 @@ statsModal?.addEventListener('click', (e) => {
         canvas.addEventListener('touchend', te, { passive: false, capture: true });
         canvas.addEventListener('click', ck, { passive: false });
         window.addEventListener('resize', rz);
+        // iOS: reklam/status-bar sonrası viewport değişimini anında yakala.
+        // 'resize' bazen tetiklenmiyor; visualViewport daha güvenilir. Sadece
+        // canvas kutusunu senkronlar (grid geometrisine dokunmaz).
+        try {
+            if (window.visualViewport) {
+                const vv = () => { try { syncCanvasToWindow('visualViewport'); } catch(_){} };
+                window.visualViewport.addEventListener('resize', vv);
+                window.visualViewport.addEventListener('scroll', vv);
+            }
+        } catch(_) {}
         console.log('✅ Canvas event listeners bound (wrapper mode)');
         const missing = {
             onMouseMove: typeof onMouseMove,
@@ -3666,32 +3692,18 @@ function onResize() {
     }
     
     const dpr = window.devicePixelRatio || 1;
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-    
-    console.log(`🖼️ onResize START: screen=${screenWidth}x${screenHeight}, dpr=${dpr}`);
-    
-    // ULTRA SIMPLE: Use screen dimensions directly
-    logicalWidth = screenWidth;
-    logicalHeight = screenHeight;
-    
-    // Set canvas backing store
-    canvas.width = logicalWidth * dpr;
-    canvas.height = logicalHeight * dpr;
-    
-    // Set CSS display size - FIXED positioning prevents scroll issues
-    canvas.style.width = logicalWidth + 'px';
-    canvas.style.height = logicalHeight + 'px';
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.zIndex = '1'; // Ensure canvas is above body but below modals
-    
-    // Reset and scale context
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    
-    console.log(`🖼️ Canvas configured: logical=${logicalWidth}x${logicalHeight}, backing=${canvas.width}x${canvas.height}`);
+
+    // Canvas kutusunu ve backing store'u TEK yerden kur (CSS kutusu = doğruluk
+    // kaynağı). Böylece canvas, 'fixed; bottom:0' olan .power-ball-bar ile aynı
+    // koordinat uzayında olur; iOS'ta innerHeight vs 100vh ayrışması HUD'u kaydırmaz.
+    if (!syncCanvasToWindow('onResize')) {
+        // Kutu henüz geçersiz (layout oturmamış) -> bu tur atla, sonraki frame düzeltir
+        console.log('⚠️ onResize: canvas kutusu hazır değil, atlanıyor');
+        return;
+    }
+    canvas.style.zIndex = '1'; // Canvas body üstünde, modalların altında
+
+    console.log(`🖼️ Canvas configured: logical=${logicalWidth}x${logicalHeight}, backing=${canvas.width}x${canvas.height}, dpr=${dpr}`);
     
     // Yeni dinamik boyutlandırma sistemini kullan
     const newDimensions = calculateGameDimensions();
@@ -3703,8 +3715,10 @@ function onResize() {
     
     console.log(`🎮 Grid: cols=${COLS}, bubbleRadius=${BUBBLE_RADIUS}, rows=${ROWS}`);
     
-    // BOTTOM_MARGIN sabit değer kullanıyor (150px - tüm ekran boyutları için aynı)
-    BOTTOM_MARGIN = BOTTOM_MARGIN_DEFAULT;
+    // BOTTOM_MARGIN = sabit rezerv (150px) + DOM power barın yüksekliği.
+    // Canvas tüm viewport'u kapladığı için barın kapattığı alan da rezerve
+    // edilmeli; yoksa LEVEL/SKOR ve kovalar barın arkasına giriyor.
+    BOTTOM_MARGIN = BOTTOM_MARGIN_DEFAULT + getPowerBarHeight();
     
     // Speed normalization
     screenSpeedFactor = BASE_SCREEN_WIDTH / Math.max(logicalWidth, BASE_SCREEN_WIDTH);
@@ -5608,15 +5622,13 @@ function gameLoop(currentTime = 0) {
     // restore çağırıyordu -> sonsuz çatışma + HUD kayması. Artık uyumsuzluk
     // varsa canvas canlı pencereye senkronlanır (kendi kendini iyileştirir).
     if (canvas) {
-        const liveW = window.innerWidth, liveH = window.innerHeight;
-        if (liveW > 100 && liveH > 100) {
-            const curW = parseInt(canvas.style.width) || 0;
-            const curH = parseInt(canvas.style.height) || 0;
-            const wDiff = Math.abs(curW - liveW) / liveW;
-            const hDiff = Math.abs(curH - liveH) / liveH;
-            if (wDiff > 0.02 || hDiff > 0.02) {
-                syncCanvasToWindow('gameloop-guard');
-            }
+        // GERÇEK render kutusu (CSS ile %100 -> layout viewport) ile oyunun
+        // kullandığı logicalWidth/Height hâlâ aynı mı? Kutu değiştiyse
+        // (iOS'ta reklam/status-bar sonrası olabiliyor) yeniden senkronla.
+        const boxW = canvas.clientWidth, boxH = canvas.clientHeight;
+        if (boxW > 100 && boxH > 100 &&
+            (Math.abs(boxW - logicalWidth) > 1 || Math.abs(boxH - logicalHeight) > 1)) {
+            syncCanvasToWindow('gameloop-guard');
         }
     }
 
@@ -10202,38 +10214,56 @@ function saveInitialGameState() {
 function syncCanvasToWindow(reason) {
     if (!canvas) return false;
     const dpr = window.devicePixelRatio || 1;
-    const w = window.innerWidth, h = window.innerHeight;
+
+    // 1) Canvas'ın kutusunu CSS'e bıraktır: fixed + %100/%100.
+    //    .power-ball-bar da 'position: fixed; bottom: 0' ile AYNI kutuya
+    //    (layout viewport) yapışıyor. Böylece canvas ile DOM HUD tanım gereği
+    //    aynı koordinat uzayında olur. Eskiden canvas'a px olarak
+    //    window.innerHeight yazılıyordu; iOS'ta innerHeight (878) ile
+    //    layout viewport / 100vh (932) ayrışabildiği için canvas'ın dibi ekran
+    //    dibinden 54px yukarıda kalıyor ve canvas içindeki her şey (shooter,
+    //    skor) alt bara göre yukarı kaymış görünüyordu.
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.right = '0';
+    canvas.style.bottom = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.transform = 'none';
+    canvas.style.webkitTransform = 'none';
+    canvas.style.margin = '0';
+    canvas.style.padding = '0';
+
+    // 2) GERÇEK render edilen kutuyu geri oku (tek doğruluk kaynağı).
+    //    Artık window.innerHeight'a güvenilmiyor.
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.round(rect.width), h = Math.round(rect.height);
     if (!w || !h || w < 100 || h < 100) {
-        console.log('⚠️ [CANVAS SYNC] Geçersiz boyut, atlandı:', w, h, '('+reason+')');
+        console.log('⚠️ [CANVAS SYNC] Geçersiz kutu, atlandı:', w, h, '('+reason+')');
         return false;
     }
-    const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+
+    // 3) Backing store'u kutuya göre ayarla -> çözünürlük hep net (dpr).
+    //    HAM rect kullanılır (önce yuvarlanmış w/h değil): aksi halde
+    //    backing ile kutu 1px kayıp minik bir ölçekleme kalıyordu.
+    const bw = Math.round(rect.width * dpr), bh = Math.round(rect.height * dpr);
     if (canvas.width !== bw || canvas.height !== bh) {
         console.log('🔧 [CANVAS SYNC] backing ' + canvas.width + 'x' + canvas.height +
                     ' -> ' + bw + 'x' + bh + ' (' + reason + ')');
         canvas.width = bw;
         canvas.height = bh;
     }
+
     logicalWidth = w;
     logicalHeight = h;
-    // Viewport'a bağlı anchor'ları canlı boyuta göre güncelle. Bu cihazda reklam/
-    // status-bar sonrası innerHeight 878<->932 değişebiliyor; shooterY yüksekliğe
-    // bağlı olduğu için güncellenmezse shooter/HUD yeni tabana göre yukarıda kalır
-    // ("HUD yukarı kaydı"). gridOffsetY sabit, gridOffsetX/COLS genişliğe bağlı
-    // (genişlik değişmiyor) -> onlara dokunmaya gerek yok.
+    // Yüksekliğe bağlı anchor'lar: kutu değişirse shooter/HUD doğru tabana otursun.
     try {
+        BOTTOM_MARGIN = BOTTOM_MARGIN_DEFAULT + getPowerBarHeight();
         shooterX = logicalWidth / 2;
         shooterY = logicalHeight - BOTTOM_MARGIN - 35;
     } catch (_) {}
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.transform = 'none';
-    canvas.style.webkitTransform = 'none';
-    canvas.style.margin = '0';
-    canvas.style.padding = '0';
+
     if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr); }
     window.scrollTo(0, 0);
     return true;
@@ -10360,25 +10390,11 @@ function resetViewportAndCanvas() {
     console.log('🔧 [VIEWPORT] Canvas pozisyonu resetleniyor...');
     console.log(`🔧 [VIEWPORT] Mevcut logicalWidth=${logicalWidth}, logicalHeight=${logicalHeight}`);
     
-    // Canvas STYLE düzeltmeleri (boyut DEĞİŞMEYECEK)
+    // Canvas kutusunu TEK yerden kur. Buraya px yazmak canvas'ı bayat bir
+    // yüksekliğe (ör. 878) kilitleyip DOM HUD'dan (fixed bottom:0 -> 932)
+    // ayrıştırıyordu; artık CSS kutusu okunuyor.
     if (canvas) {
-        canvas.style.transform = 'none';
-        canvas.style.webkitTransform = 'none';
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        // Mevcut logicalWidth/Height kullan, window.innerWidth DEĞİL
-        canvas.style.width = logicalWidth + 'px';
-        canvas.style.height = logicalHeight + 'px';
-        canvas.style.margin = '0';
-        canvas.style.padding = '0';
-        
-        // Context transform'u düzelt (canvas boyutu değişmedi, sadece transform reset)
-        if (ctx) {
-            const dpr = window.devicePixelRatio || 1;
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-        }
+        syncCanvasToWindow('viewport-reset');
     }
     
     // Body/html scroll sıfırla
