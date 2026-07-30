@@ -1527,6 +1527,49 @@ let speedLogInterval = 0;
 const BORDER_THICKNESS = 6;               // drawBorder line width
 const FRAME_PADDING   = BORDER_THICKNESS + 2; // ekstra tampon
 
+// iOS çentik/Dynamic Island yüksekliğini (env(safe-area-inset-top)) JS'ten oku.
+// Android'de 0 döner -> davranış değişmez. Sabit 53px'lik gridOffsetY bu alanı
+// hesaba katmadığı için iPhone'da grid'in 0. sırası saat/wifi ikonlarının ve
+// Dynamic Island'ın ALTINDA kalıyordu (içerik "yukarı kaymış" görünüyordu).
+// Değer resize başına bir kez ölçülür, cache'lenir.
+let _safeAreaTopCache = null;
+function getSafeAreaTop() {
+    if (_safeAreaTopCache !== null) return _safeAreaTopCache;
+    let v = 0;
+    try {
+        const probe = document.createElement('div');
+        probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;' +
+            'padding-top:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none;';
+        document.body.appendChild(probe);
+        v = parseFloat(getComputedStyle(probe).paddingTop) || 0;
+        probe.remove();
+    } catch (_) { v = 0; }
+    _safeAreaTopCache = Math.max(0, Math.min(80, Math.round(v)));
+    return _safeAreaTopCache;
+}
+
+// Grid ÇİZİM ofsetleri. Grid dizisini (COLS/satırlar) DEĞİŞTİRMEZ, yalnızca
+// nereye çizileceğini belirler -> her an güvenle yeniden hesaplanabilir.
+// Eskiden bunlar SADECE onResize'ın normal yolunda hesaplanıyordu; oyun
+// oynanırken o yol bloklandığı için (early return) reklam sonrası resume veya
+// WebView reload'unda bir daha hesaplanmıyordu. Üstüne getSafeAreaTop() layout
+// hazır olmadan ölçülürse 0 dönüyor ve gridOffsetY 53'te kalıyordu ->
+// grid'in ilk sırası iOS çentiğinin/Dynamic Island'ın altında kalıyordu.
+function recomputeGridOffsets(reason) {
+    try {
+        _safeAreaTopCache = null; // her seferinde yeniden ölç (nadiren çağrılır)
+        const safeTop = getSafeAreaTop();
+        gridOffsetY = FRAME_PADDING + 45 + safeTop;
+
+        const hexOffset = BUBBLE_RADIUS;
+        const actualGridWidth = COLS * BUBBLE_RADIUS * 2 + hexOffset;
+        const minMargin = 5;
+        gridOffsetX = (actualGridWidth + 2 * minMargin <= logicalWidth)
+            ? (logicalWidth - actualGridWidth) / 2 + hexOffset / 2
+            : minMargin;
+    } catch (_) {}
+}
+
 // --- YENİ POWERUP TİPLERİ ---
 const POWERUP_TYPES = {
     BOMB: 'bomb',
@@ -3195,6 +3238,14 @@ statsModal?.addEventListener('click', (e) => {
         // iOS: reklam/status-bar sonrası viewport değişimini anında yakala.
         // 'resize' bazen tetiklenmiyor; visualViewport daha güvenilir. Sadece
         // canvas kutusunu senkronlar (grid geometrisine dokunmaz).
+        // iOS'ta env(safe-area-inset-top) sayfa açılışından hemen sonra 0
+        // ölçülebiliyor (layout/viewport-fit henüz uygulanmamış). Kısa
+        // gecikmelerle grid ofsetlerini bir kez daha hesapla -> grid ilk sırası
+        // çentiğin/Dynamic Island'ın altına insin.
+        [400, 1200, 2500].forEach((ms) => setTimeout(() => {
+            try { recomputeGridOffsets('delayed-' + ms); } catch (_) {}
+        }, ms));
+
         // Canvas'ın GERÇEK kutusu her ne sebeple değişirse (reklam, status bar,
         // safe area, rotasyon) anında yakala. En güvenilir mekanizma bu.
         try {
@@ -3756,21 +3807,8 @@ function onResize() {
     CURRENT_SHOOTER_SPEED = SHOOTER_SPEED * STABLE_SPEED_MULTIPLIER;
     CURRENT_GRAVITY = GRAVITY * STABLE_SPEED_MULTIPLIER;
     
-    // Grid positioning
-    const totalGridWidth = COLS * BUBBLE_RADIUS * 2;
-    const hexOffset = BUBBLE_RADIUS;
-    const actualGridWidth = totalGridWidth + hexOffset;
-    const minMargin = 5;
-    
-    if (actualGridWidth + 2 * minMargin <= logicalWidth) {
-        gridOffsetX = (logicalWidth - actualGridWidth) / 2 + hexOffset / 2;
-    } else {
-        gridOffsetX = minMargin;
-    }
-    
-    // gridOffsetY: iOS safe area + biraz boşluk ekle
-    // Status bar ve notch için yeterli alan bırak
-    gridOffsetY = FRAME_PADDING + 45; // 53px - safe area için artırıldı
+    // Grid çizim ofsetleri (yatay ortalama + iOS üst güvenli alan) tek yerden
+    recomputeGridOffsets('onResize');
     
     shooterX = logicalWidth / 2;
     shooterY = logicalHeight - BOTTOM_MARGIN - 35; // Daha yukarı çıkarıldı
@@ -10295,6 +10333,9 @@ function syncCanvasToWindow(reason) {
         BOTTOM_MARGIN = BOTTOM_MARGIN_DEFAULT + getPowerBarHeight();
         shooterX = logicalWidth / 2;
         shooterY = logicalHeight - BOTTOM_MARGIN - 35;
+        // Grid çizim ofsetlerini de tazele: onResize'ın normal yolu oyun
+        // sırasında bloklandığı için tek güvenilir yer burası.
+        recomputeGridOffsets('sync-' + reason);
     } catch (_) {}
 
     if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr); }
