@@ -1120,51 +1120,51 @@ if (!ctx) {
 
 // --- OYUN AYARLARI ---
 // Ekran boyutuna göre dinamik balon ve grid ayarları
+// --- BORDER CONSTANTS ---
+// NOT: Bu sabitler calculateGameDimensions()'ın ÜSTÜNDE tanımlı olmak ZORUNDA.
+// Grid geometrisi FRAME_PADDING'i yan boşluk olarak kullanıyor ve
+// calculateGameDimensions modül yüklenirken (const gameDimensions = ...) hemen
+// çağrılıyor. Aşağıda tanımlı kalsalardı 'Cannot access before initialization'
+// (temporal dead zone) hatası tüm app.js'in çalışmasını durdururdu.
+const BORDER_THICKNESS = 6;               // drawBorder line width
+const FRAME_PADDING   = BORDER_THICKNESS + 2; // ekstra tampon (= 8)
+
 function calculateGameDimensions() {
     const screenWidth = window.innerWidth || 800;
     const screenHeight = window.innerHeight || 600;
     
-    // Balon boyutu ekran genişliğinin yüzdesi olarak hesaplanır
-    // Tablet için daha yüksek oran kullan
-    let radiusMultiplier = 0.045; // Varsayılan %4.5
-    
-    if (screenWidth >= 1000) {
-        radiusMultiplier = 0.028; // Büyük tabletler için %2.8 (%20 küçültüldü: 3.5 -> 2.8)
-    } else if (screenWidth >= 768) {
-        radiusMultiplier = 0.027; // Orta tabletler için %2.7 (%20 küçültüldü)
-    }
-    
-    const rawRadius = Math.floor(screenWidth * radiusMultiplier);
-    let safeRadius = Math.max(18, Math.min(55, rawRadius));
+    // 🎯 GEOMETRİ: yarıçap SÜTUN SAYISINDAN türetilir (tersi değil).
+    // Grid'in gerçek genişliği hex kaydırması dahil R*(2*COLS+1)'dir. Sütun
+    // sayısı hedef balon çapından seçilip yarıçap bu genişliğe göre çözülünce:
+    //   - iki yan boşluk BİREBİR eşit olur (asimetri biter)
+    //   - artan ölü boşluk en aza iner (grid ekranı doldurur)
+    //   - grid asla ekrandan taşmaz (sağ kenarda gizli top olmaz)
+    // Eskiden R sabit bir yüzdeden geliyor, sütunlar "sığdığı kadar" seçiliyor
+    // ve 30-40px artan boşluk kullanılmadan kalıyordu.
+    const SIDE = FRAME_PADDING;                        // topun sekme sınırıyla aynı hiza
+    const available = Math.max(80, screenWidth - 2 * SIDE);
 
-    // 🐛 SAĞ KENARDA GİZLİ TOPLAR - KÖK NEDEN:
-    // Eski formül: cols = floor(screenWidth / (radius * 2.1)) + 1
-    // Bu, grid'i ekrandan GENİŞ yapıyordu. onResize'daki gerçek grid genişliği:
-    //     cols * 2R + R (hex kaydırması)  ve buna iki yandan minMargin (5px)
-    // Örnek (iPhone, sw=440, R=19): eski cols=12 -> 12*38+19 = 475 > 440
-    // -> en sağdaki sütun(lar) ekran DIŞINDA kalıyordu. Toplar oraya yerleşince
-    // görünmüyor, "havada asılı kalmış" gibi duruyordu; şut atılınca ortaya çıkıyordu.
-    // Ayrıca cols, safeRadius yerine ham radius'tan hesaplanıyordu (tutarsız).
-    //
-    // Artık sütun sayısı EKRANA SIĞMA koşulundan türetiliyor:
-    //     cols * 2R + R + 2*margin <= screenWidth
-    const MIN_MARGIN = 5; // onResize içindeki minMargin ile aynı olmalı
-    const fitCols = (R) => Math.floor((screenWidth - 2 * MIN_MARGIN - R) / (R * 2));
-    const safeCols = Math.max(7, Math.min(18, fitCols(safeRadius)));
+    // Hedef balon çapı (telefonda iri, tablette orantılı olarak daha büyük)
+    let targetDiameter = 40;
+    if (screenWidth >= 1000) targetDiameter = 56;
+    else if (screenWidth >= 768) targetDiameter = 52;
 
-    // Alt sınır (7) yüzünden hâlâ taşıyorsa yarıçapı küçülterek sığdır
-    while (safeCols * safeRadius * 2 + safeRadius + 2 * MIN_MARGIN > screenWidth && safeRadius > 12) {
-        safeRadius--;
-    }
+    // R*(2C+1) = available ve 2R ≈ targetDiameter  ->  C = (available/R - 1)/2
+    let cols = Math.round((available / (targetDiameter / 2) - 1) / 2);
+    cols = Math.max(7, Math.min(18, cols));
+
+    // Tam sayı yarıçap: sprite'lar keskin kalsın (drawPlainBubbleCached yarıçapı
+    // yuvarlıyor). Artan birkaç piksel gridOffsetX'te simetrik dağıtılır.
+    const radius = Math.max(12, Math.floor(available / (2 * cols + 1)));
 
     // Satır sayısı ekran yüksekliğine göre (nihai yarıçapa göre)
-    const rows = Math.floor((screenHeight * 0.4) / (safeRadius * 1.732)); // Ekranın üst %40'ı
+    const rows = Math.floor((screenHeight * 0.4) / (radius * 1.732)); // Ekranın üst %40'ı
     const safeRows = Math.max(8, Math.min(18, rows));
 
-    return { 
-        radius: safeRadius, 
-        rows: safeRows, 
-        cols: safeCols 
+    return {
+        radius: radius,
+        rows: safeRows,
+        cols: cols
     };
 }
 
@@ -1372,7 +1372,7 @@ function calculateShapeCells(pattern, rows, cols, centerCol) {
             const circleCenterRow = Math.floor(rows / 2);
             const radius = Math.min(Math.floor(rows / 2) - 1, Math.floor(cols / 4));
             for (let row = 0; row < rows; row++) {
-                for (let col = 1; col < cols; col++) {
+                for (let col = 0; col < cols; col++) {
                     const dy = row - circleCenterRow;
                     const dx = col - centerCol;
                     if (Math.sqrt(dx * dx + dy * dy) <= radius) {
@@ -1419,7 +1419,11 @@ function createPatternGrid(level, rows, cols) {
     
     // Grid'i doldur
     for (let r = 0; r < rows; r++) {
-        for (let c = 1; c < cols; c++) {
+        // 0. sütun DAHİL: eski geometride 'cols' bir fazla hesaplanıp
+        // (floor(...)+1) en soldaki sütun kasten boş bırakılıyordu. COLS artık
+        // gerçekten sığan sütun sayısı olduğu için c=1'den başlamak soldaki
+        // sütunu ölü boşluğa çeviriyor ve grid sağa kaymış görünüyordu.
+        for (let c = 0; c < cols; c++) {
             const cellKey = `${r},${c}`;
             if (shapeCells.has(cellKey)) {
                 // Şekil içi - ana renk
@@ -1523,10 +1527,6 @@ let lastCursorX = 0;
 let lastCursorY = 0;
 let speedLogInterval = 0;
 
-// --- BORDER CONSTANTS ---
-const BORDER_THICKNESS = 6;               // drawBorder line width
-const FRAME_PADDING   = BORDER_THICKNESS + 2; // ekstra tampon
-
 // iOS çentik/Dynamic Island yüksekliğini (env(safe-area-inset-top)) JS'ten oku.
 // Android'de 0 döner -> davranış değişmez. Sabit 53px'lik gridOffsetY bu alanı
 // hesaba katmadığı için iPhone'da grid'in 0. sırası saat/wifi ikonlarının ve
@@ -1561,12 +1561,15 @@ function recomputeGridOffsets(reason) {
         const safeTop = getSafeAreaTop();
         gridOffsetY = FRAME_PADDING + 45 + safeTop;
 
-        const hexOffset = BUBBLE_RADIUS;
-        const actualGridWidth = COLS * BUBBLE_RADIUS * 2 + hexOffset;
-        const minMargin = 5;
-        gridOffsetX = (actualGridWidth + 2 * minMargin <= logicalWidth)
-            ? (logicalWidth - actualGridWidth) / 2 + hexOffset / 2
-            : minMargin;
+        // Grid'in gerçek sınırları (getBubbleCoords'a göre):
+        //   sol kenar  = gridOffsetX - R          (çift satır, c=0)
+        //   sağ kenar  = gridOffsetX + COLS*2R    (tek satır, c=COLS-1, +R kayma)
+        //   genişlik   = COLS*2R + R = R*(2*COLS+1)
+        // Ortalamak için sol kenar (lw - genişlik)/2 olmalı -> gridOffsetX buna
+        // R eklenerek bulunur. Eskiden '+ hexOffset/2' yazıyordu; bu yüzden grid
+        // yarım balon (R/2) sola kaçıktı ve yanlar asimetrik görünüyordu.
+        const gridW = COLS * BUBBLE_RADIUS * 2 + BUBBLE_RADIUS;
+        gridOffsetX = Math.round((logicalWidth - gridW) / 2 + BUBBLE_RADIUS);
     } catch (_) {}
 }
 
@@ -5796,7 +5799,7 @@ function gameLoop(currentTime = 0) {
     drawGrid();
     drawBottomUI();
     drawShooter();
-    drawGameInfo();
+    updateHudDom();   // LEVEL/SKOR artık DOM'da (canvas'a çizilmiyor)
 
     // Effects with reduced frequency
     if (particles.length > 0) drawParticles();
@@ -5824,53 +5827,75 @@ function gameLoop(currentTime = 0) {
     }
 }
 
-function drawGameInfo() {
-    // Sol alt köşe - Level ve Skor bilgisi (iki satır, arka plansız, sola yaslanmış)
-    const fontSize = Math.max(20, Math.min(26, logicalWidth / 20));
-    const barTopY = logicalHeight - BOTTOM_MARGIN; // Powerball barın üst sınırı
-    
-    const textX = 10; // Sol kenardan 10px, sola yaslanmış
-    const textY = barTopY + 55; // Daha aşağıda, powerball barın içinde
-    
-    // Level bilgisi (üst satır)
-    ctx.font = `bold ${fontSize}px Arial`;
-    ctx.fillStyle = '#D500F9';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    ctx.shadowBlur = 4;
-    ctx.fillText(`LEVEL ${currentLevel}`, textX, textY);
-    
-    // Skor bilgisi (alt satır)
-    ctx.fillStyle = '#00D4FF';
-    ctx.fillText(`SKOR ${formatScore(score)}`, textX, textY + 26);
-    ctx.shadowBlur = 0;
-    
-    // Sağ üst köşede oyun bilgileri (eski konumunda kalsın)
-    ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'top';
-    
-    let yOffset = 55;
-    let xOffset = logicalWidth - 15;
-    
-    // Oyun moduna göre bilgiler
-    if (gameMode === GAME_MODES.STRATEGY) {
-        ctx.fillText(`🎯 Hamle: ${shotsRemaining}`, xOffset, yOffset);
-        yOffset += 20;
-    } else if (gameMode === GAME_MODES.ARCADE) {
-        const minutes = Math.floor(timeRemaining / 60);
-        const seconds = Math.floor(timeRemaining % 60);
-        ctx.fillText(`⏰ ${minutes}:${seconds.toString().padStart(2, '0')}`, xOffset, yOffset);
-        yOffset += 20;
+// Oyun bilgisi (LEVEL / SKOR / mod) artık canvas'a çizilmiyor, DOM'da tutuluyor.
+// Sebep: canvas metni logicalHeight - BOTTOM_MARGIN hesabına bağlıydı; canvas ile
+// DOM koordinat uzayı ayrıştığında power barın arkasına giriyordu. Ayrıca sağ
+// üstteki mod bilgisi sabit y=55 kullandığı için iOS çentiğinin altında kalıyordu.
+// Şimdi konumlandırmayı CSS yapıyor (#hudInfo power barın üstüne, #hudMode
+// güvenli alan paylı üst barın içine).
+// PERF: değer DEĞİŞMEDİYSE DOM'a yazılmaz -> kare başına maliyet yok.
+function updateHudDom() {
+    const lvl = document.getElementById('hudLevel');
+    if (lvl) {
+        const t = 'LEVEL ' + currentLevel;
+        if (lvl.textContent !== t) lvl.textContent = t;
+    }
+
+    const sc = document.getElementById('hudScore');
+    if (sc) {
+        const t = 'SKOR ' + formatScore(score);
+        if (sc.textContent !== t) sc.textContent = t;
+    }
+
+    const md = document.getElementById('hudMode');
+    if (md) {
+        let t = '';
+        if (gameMode === GAME_MODES.STRATEGY) {
+            t = `🎯 Hamle: ${shotsRemaining}`;
+        } else if (gameMode === GAME_MODES.ARCADE) {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = Math.floor(timeRemaining % 60);
+            t = `⏰ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        if (md.textContent !== t) md.textContent = t;
     }
 }
 
 function drawBorder() {
-    ctx.strokeStyle = 'rgba(30, 97, 255, 0.8)';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(3, 3, logicalWidth - 6, logicalHeight - 6);
+    // Çerçeve artık tüm ekranı değil GERÇEK OYUN ALANINI sarar:
+    //   sol/sağ = topun sekme sınırı (FRAME_PADDING) -> çerçeve gerçek duvarı gösterir
+    //   üst     = tavan sırasının hemen üstü (iOS çentiğinin ALTINDA)
+    //   alt     = zemin çizgisi (power barın ÜSTÜNDE)
+    // Eskiden strokeRect(3, 3, lw-6, lh-6) ile ekranın tam kenarına çiziliyordu;
+    // canvas viewport'u tamamen kapladığı için üstü çentiğin, altı power barın
+    // arkasında kalıyor ve "oturmamış/kaymış" görünüyordu.
+    const x = FRAME_PADDING;
+    const w = logicalWidth - FRAME_PADDING * 2;
+    const top = Math.max(FRAME_PADDING, (gridOffsetY || 0) - BUBBLE_RADIUS - 8);
+    const bottom = logicalHeight - BOTTOM_MARGIN;
+    const h = bottom - top;
+    if (!(w > 0 && h > 0)) return;
+
+    const r = Math.min(16, w / 2, h / 2);
+    ctx.save();
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(x, top, w, h, r);
+    } else {
+        // iOS 15 gibi roundRect'i olmayan WebView'lar için yedek yol
+        ctx.moveTo(x + r, top);
+        ctx.arcTo(x + w, top,     x + w, top + h, r);
+        ctx.arcTo(x + w, top + h, x,     top + h, r);
+        ctx.arcTo(x,     top + h, x,     top,     r);
+        ctx.arcTo(x,     top,     x + w, top,     r);
+        ctx.closePath();
+    }
+    ctx.strokeStyle = 'rgba(90, 160, 255, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(90, 160, 255, 0.35)';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.restore();
 }
 
 function spawnBubbles() {
@@ -6935,61 +6960,54 @@ function __paintPlainBubble(ctx, x, y, radius, color) {
             return rgbToHex(r, g, b);
         }
         
-        // Neon gradient
-        const mainGrad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-        mainGrad.addColorStop(0, '#FFFFFF');
-        mainGrad.addColorStop(0.1, adjustBrightness(color, 2.0));
-        mainGrad.addColorStop(0.3, color);
-        mainGrad.addColorStop(0.7, adjustBrightness(color, 0.8));
-        mainGrad.addColorStop(1, adjustBrightness(color, 0.3));
-        
+        // 🎨 DOYGUN BALON (beyaz yıkama katmanları kaldırıldı)
+        // Eski çizim üst üste beyaz basıyordu: gradient merkezi '#FFFFFF',
+        // 0.1 durağı brightness(2.0), ardından yarıçapın %70'ini kaplayan %90
+        // alfa beyaz highlight, ardından beyaz kenar ışığı. Gerçek renk yalnızca
+        // ince bir halkada kalıyor, balonlar soluk/donuk görünüyordu.
+        // Artık: merkezde GERÇEK renk, üst-solda hafif açığı, kenarda koyusu;
+        // tek küçük yumuşak parlama; ince koyu iç kenar.
+
+        // 1) Hacim: ışık üst-soldan gelir, renk korunur
+        const gx = x - radius * 0.28, gy = y - radius * 0.28;
+        const mainGrad = ctx.createRadialGradient(gx, gy, radius * 0.05, x, y, radius);
+        mainGrad.addColorStop(0.00, adjustBrightness(color, 1.45)); // açık ama BEYAZ değil
+        mainGrad.addColorStop(0.45, color);                          // gerçek renk geniş alanda
+        mainGrad.addColorStop(0.85, adjustBrightness(color, 0.62));
+        mainGrad.addColorStop(1.00, adjustBrightness(color, 0.40));
         ctx.fillStyle = mainGrad;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Neon glow efekti
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 15;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
+
+        // 2) Tek küçük spekülar parlama (yarıçapın ~%22'si, yumuşak)
+        const hlR = radius * 0.22;
+        const hlX = x - radius * 0.34, hlY = y - radius * 0.38;
+        const hl = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR * 2.1);
+        hl.addColorStop(0.0, 'rgba(255,255,255,0.75)');
+        hl.addColorStop(0.5, 'rgba(255,255,255,0.18)');
+        hl.addColorStop(1.0, 'rgba(255,255,255,0)');
+        ctx.fillStyle = hl;
         ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.ellipse(hlX, hlY, hlR * 1.5, hlR * 1.15, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3) İnce koyu iç kenar: hacim ve balonlar arası ayrım (beyaz halka YOK)
+        ctx.strokeStyle = adjustBrightness(color, 0.55);
+        ctx.lineWidth = Math.max(1, radius * 0.07);
+        ctx.beginPath();
+        ctx.arc(x, y, radius - ctx.lineWidth * 0.5, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        // Parlak üst highlight
-        const highlightGrad = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, 0, x - radius * 0.35, y - radius * 0.35, radius * 0.7);
-        highlightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-        highlightGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.5)');
-        highlightGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = highlightGrad;
-        ctx.beginPath();
-        ctx.arc(x - radius * 0.35, y - radius * 0.35, radius * 0.7, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Alt gölge efekti
-        const shadowGrad = ctx.createRadialGradient(x + radius * 0.3, y + radius * 0.3, 0, x + radius * 0.3, y + radius * 0.3, radius * 0.5);
-        shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
-        shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = shadowGrad;
-        ctx.beginPath();
-        ctx.arc(x + radius * 0.3, y + radius * 0.3, radius * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Kenar ışığı
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.lineWidth = 1.5;
+
+        // 4) Zayıf renkli dış parıltı (neon his, boğmadan)
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 7;
+        ctx.strokeStyle = adjustBrightness(color, 1.15);
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(x, y, radius - 0.5, 0, Math.PI * 2);
         ctx.stroke();
-        
-        // İç kenar gölgesi
-        ctx.strokeStyle = adjustBrightness(color, 0.3);
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(x, y, radius - 2, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.shadowBlur = 0;
 }
 
 
@@ -10806,7 +10824,7 @@ async function restartLevelWithAd() {
             // Seviyeye göre initial bubbles oluştur
             const initialRows = Math.min(6 + Math.floor(currentLevel / 3), 10);
             for (let r = 0; r < initialRows; r++) {
-                for (let c = 1; c < COLS; c++) {
+                for (let c = 0; c < COLS; c++) {   // 0. sütun dahil (bkz. createPatternGrid)
                     grid[r][c] = createNormalBubble();
                 }
             }

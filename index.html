@@ -130,6 +130,14 @@
     <div id="game-root" style="visibility: hidden;">
         <canvas id="gameCanvas" role="img" aria-label="Balon patlatma oyun alanı"></canvas>
 
+        <!-- Oyun bilgisi (LEVEL / SKOR) - DOM'da: her ekranda net, CSS'ten
+             temalanır ve canvas'ın BOTTOM_MARGIN matematiğine bağlı değil.
+             Konumu power barın üstüne CSS ile sabitlenir. -->
+        <div id="hudInfo" aria-live="polite">
+            <span id="hudLevel">LEVEL 1</span>
+            <span id="hudScore">SKOR 0</span>
+        </div>
+
         <!-- Power Ball Buttons -->
         <div id="powerBallBar" class="power-ball-bar" role="group" aria-label="Güç topları">
             <button id="bombBtn" class="power-ball-btn" onclick="usePowerBall('bomb')" aria-label="Bomba gücü">
@@ -231,6 +239,9 @@
             <div class="top-bar">
                 <div class="game-info">
                     <span id="score" class="score-display" style="display: none;">Skor: 0</span>
+                    <!-- Mod bilgisi (Strateji: hamle, Arcade: süre). #gameHUD zaten
+                         env(safe-area-inset-top) payına sahip -> çentiğin altında kalır. -->
+                    <span id="hudMode" class="hud-mode"></span>
                 </div>
             </div>
 

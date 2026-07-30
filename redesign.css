@@ -976,3 +976,40 @@
   padding: 0 !important;
   transform: none !important;
 }
+
+/* =========================================================================
+ * 🏷️ OYUN BİLGİSİ (LEVEL / SKOR) — canvas'tan DOM'a taşındı
+ *
+ * Eskiden canvas'a çiziliyordu ve konumu logicalHeight - BOTTOM_MARGIN + 55
+ * hesabına bağlıydı; canvas ile DOM koordinat uzayı ayrıştığında power barın
+ * arkasına giriyordu. Artık power barın üstüne CSS ile sabitlenir: her
+ * ekranda net (canvas ölçeğinden bağımsız), CSS'ten temalanabilir.
+ * ========================================================================= */
+#game-root #hudInfo {
+  position: fixed;
+  left: 14px;
+  bottom: calc(var(--rd-powerbar-h, 80px) + 14px);
+  /* Power bar ile aynı katman: canvas'ın üstünde ama #startScreen (1200) ve
+     modalların ALTINDA -> menüdeyken kendiliğinden gizli kalır. */
+  z-index: 1000;
+  pointer-events: none;        /* oyun dokunuşlarını engellemesin */
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  font-size: clamp(18px, 5.4vw, 26px);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+#game-root #hudInfo #hudLevel { color: #d500f9; }
+#game-root #hudInfo #hudScore { color: #00d4ff; }
+
+/* Mod bilgisi (Strateji: hamle / Arcade: süre) — üst barda, çentiğin altında */
+#game-root .hud-mode {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+#game-root .hud-mode:empty { display: none; }
