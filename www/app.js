@@ -1134,19 +1134,33 @@ function calculateGameDimensions() {
         radiusMultiplier = 0.027; // Orta tabletler için %2.7 (%20 küçültüldü)
     }
     
-    const radius = Math.floor(screenWidth * radiusMultiplier);
-    
-    // Satır sayısı ekran yüksekliğine göre - daha az satır
-    const rows = Math.floor((screenHeight * 0.4) / (radius * 1.732)); // Ekranın üst %40'ı
-    
-    // Sütun sayısı balon boyutuna göre otomatik + sadece sol sütun eklendi
-    const cols = Math.floor(screenWidth / (radius * 2.1)) + 1; // +1 (sadece sol)
-    
-    // Güvenli sınırlar - max limiti kaldırdık
-    const safeRadius = Math.max(18, Math.min(55, radius)); // Max 55px'e yükselttik
+    const rawRadius = Math.floor(screenWidth * radiusMultiplier);
+    let safeRadius = Math.max(18, Math.min(55, rawRadius));
+
+    // 🐛 SAĞ KENARDA GİZLİ TOPLAR - KÖK NEDEN:
+    // Eski formül: cols = floor(screenWidth / (radius * 2.1)) + 1
+    // Bu, grid'i ekrandan GENİŞ yapıyordu. onResize'daki gerçek grid genişliği:
+    //     cols * 2R + R (hex kaydırması)  ve buna iki yandan minMargin (5px)
+    // Örnek (iPhone, sw=440, R=19): eski cols=12 -> 12*38+19 = 475 > 440
+    // -> en sağdaki sütun(lar) ekran DIŞINDA kalıyordu. Toplar oraya yerleşince
+    // görünmüyor, "havada asılı kalmış" gibi duruyordu; şut atılınca ortaya çıkıyordu.
+    // Ayrıca cols, safeRadius yerine ham radius'tan hesaplanıyordu (tutarsız).
+    //
+    // Artık sütun sayısı EKRANA SIĞMA koşulundan türetiliyor:
+    //     cols * 2R + R + 2*margin <= screenWidth
+    const MIN_MARGIN = 5; // onResize içindeki minMargin ile aynı olmalı
+    const fitCols = (R) => Math.floor((screenWidth - 2 * MIN_MARGIN - R) / (R * 2));
+    const safeCols = Math.max(7, Math.min(18, fitCols(safeRadius)));
+
+    // Alt sınır (7) yüzünden hâlâ taşıyorsa yarıçapı küçülterek sığdır
+    while (safeCols * safeRadius * 2 + safeRadius + 2 * MIN_MARGIN > screenWidth && safeRadius > 12) {
+        safeRadius--;
+    }
+
+    // Satır sayısı ekran yüksekliğine göre (nihai yarıçapa göre)
+    const rows = Math.floor((screenHeight * 0.4) / (safeRadius * 1.732)); // Ekranın üst %40'ı
     const safeRows = Math.max(8, Math.min(18, rows));
-    const safeCols = Math.max(10, Math.min(18, cols)); // Min 10, Max 18'e yükseltildi
-    
+
     return { 
         radius: safeRadius, 
         rows: safeRows, 
@@ -3181,6 +3195,22 @@ statsModal?.addEventListener('click', (e) => {
         // iOS: reklam/status-bar sonrası viewport değişimini anında yakala.
         // 'resize' bazen tetiklenmiyor; visualViewport daha güvenilir. Sadece
         // canvas kutusunu senkronlar (grid geometrisine dokunmaz).
+        // Canvas'ın GERÇEK kutusu her ne sebeple değişirse (reklam, status bar,
+        // safe area, rotasyon) anında yakala. En güvenilir mekanizma bu.
+        try {
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => {
+                    try {
+                        const r = canvas.getBoundingClientRect();
+                        if (Math.abs(Math.round(r.width) - logicalWidth) > 1 ||
+                            Math.abs(Math.round(r.height) - logicalHeight) > 1) {
+                            syncCanvasToWindow('resizeObserver');
+                        }
+                    } catch (_) {}
+                });
+                ro.observe(canvas);
+            }
+        } catch (_) {}
         try {
             if (window.visualViewport) {
                 const vv = () => { try { syncCanvasToWindow('visualViewport'); } catch(_){} };
@@ -4031,16 +4061,9 @@ function initializeNextLevel() {
     // (Bayat _initialGameState snapshot'ı KULLANMA -> çözünürlük düşmesi/HUD kayması yok.)
     if (_initialGameState) {
         // Grid layout değerlerini bellek state'inden geri yükle (reklam boyutu değiştirmez)
-        logicalWidth = _initialGameState.logicalWidth;
-        logicalHeight = _initialGameState.logicalHeight;
-        gridOffsetX = _initialGameState.gridOffsetX;
-        gridOffsetY = _initialGameState.gridOffsetY;
-        shooterX = _initialGameState.shooterX;
-        shooterY = _initialGameState.shooterY;
-        BUBBLE_RADIUS = _initialGameState.BUBBLE_RADIUS;
-        COLS = _initialGameState.COLS;
-        ROW_HEIGHT = _initialGameState.ROW_HEIGHT;
-        // Canvas backing store'u CANLI pencereden ayarla (bayat snapshot değil)
+        // 🚫 Snapshot'tan boyut yazılmıyor (restoreGameStateAfterAd ile aynı sebep):
+        // sync erken çıkarsa bayat değerler yerinde kalıp HUD'u kaydırıyordu.
+        // Canvas kutusu tek gerçek kaynak.
         syncCanvasToWindow('level-start');
         _isAdCurrentlyShowing = false;
         console.log(`✅ [LEVEL] Canvas synced: ${logicalWidth}x${logicalHeight}, BUBBLE_RADIUS=${BUBBLE_RADIUS}, COLS=${COLS}`);
@@ -10240,9 +10263,19 @@ function syncCanvasToWindow(reason) {
     const rect = canvas.getBoundingClientRect();
     const w = Math.round(rect.width), h = Math.round(rect.height);
     if (!w || !h || w < 100 || h < 100) {
-        console.log('⚠️ [CANVAS SYNC] Geçersiz kutu, atlandı:', w, h, '('+reason+')');
+        // Kutu henüz geçersiz. iOS'ta reklam kapandıktan hemen sonra WebView
+        // görünür olmadan rect 0x0 dönebiliyor. SESSİZCE ÇIKMAK tehlikeli:
+        // çağıran taraf bayat değerlerle kalıyordu. Kutu geçerli olana kadar
+        // tekrar dene (~1sn, 60 frame).
+        const n = (window.__canvasSyncRetries || 0) + 1;
+        window.__canvasSyncRetries = n;
+        if (n <= 60) {
+            try { requestAnimationFrame(() => syncCanvasToWindow(reason + '-retry')); } catch (_) {}
+        }
+        console.log('⚠️ [CANVAS SYNC] Kutu hazır değil (' + w + 'x' + h + '), tekrar ' + n + ' (' + reason + ')');
         return false;
     }
+    window.__canvasSyncRetries = 0;
 
     // 3) Backing store'u kutuya göre ayarla -> çözünürlük hep net (dpr).
     //    HAM rect kullanılır (önce yuvarlanmış w/h değil): aksi halde
@@ -10325,20 +10358,15 @@ function restoreGameStateAfterAd() {
         logicalWidth, logicalHeight, gridOffsetX, gridOffsetY, BUBBLE_RADIUS, COLS, ROW_HEIGHT
     });
     
-    // Kritik değerleri geri yükle
-    logicalWidth = stateToRestore.logicalWidth;
-    logicalHeight = stateToRestore.logicalHeight;
-    gridOffsetX = stateToRestore.gridOffsetX;
-    gridOffsetY = stateToRestore.gridOffsetY;
-    shooterX = stateToRestore.shooterX;
-    shooterY = stateToRestore.shooterY;
-    BUBBLE_RADIUS = stateToRestore.BUBBLE_RADIUS;
-    COLS = stateToRestore.COLS;
-    ROW_HEIGHT = stateToRestore.ROW_HEIGHT;
-    
-    // 🎯 Canvas'ı bayat snapshot yerine CANLI pencereden boyutlandır (çözünürlük
-    // düşmesini önler). Grid layout değerleri yukarıda bellek state'inden zaten
-    // geri yüklendi; reklam viewport'u değiştirmediği için tutarlıdır.
+    // 🚫 BOYUTLAR ARTIK SNAPSHOT'TAN GERİ YÜKLENMİYOR (kök neden buydu).
+    // Eskiden buraya logicalWidth/logicalHeight/shooterY/BUBBLE_RADIUS/COLS...
+    // snapshot'tan yazılıyordu. iOS'ta reklam kapandıktan hemen sonra web süreci
+    // henüz görünür olmadığı için syncCanvasToWindow'un okuduğu kutu 0 dönüyor ve
+    // fonksiyon erken çıkıyordu -> snapshot'tan yazılmış BAYAT değerler yerinde
+    // kalıyor, HUD kayıyordu. (fixViewportAfterAd bunu resume'da 5 kez çağırıyor,
+    // hepsi de kutu henüz hazır değilken.)
+    // Reklam ne viewport'u ne grid'i değiştirdiği için geri yüklenecek bir şey de
+    // yok: tek gerçek kaynak canvas'ın CANLI CSS kutusu.
     syncCanvasToWindow('ad-restore');
 
     // Scroll sıfırla - AGRESIF
