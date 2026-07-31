@@ -494,6 +494,7 @@ window.AD_MEDIATION = {
                     await AdMob.showInterstitial();
                 }
                 AD_PRELOAD.mark('interstitial', false);
+                AD_GATE.noteShown('interstitial');
                 setTimeout(() => { preloadAd('interstitial'); }, 1500); // sonrakini hazırla
                 console.log(`📱 [ADMOB] Interstitial success`);
                 return { success: true };
@@ -515,6 +516,9 @@ window.AD_MEDIATION = {
                     result = await AdMob.showRewardVideoAd();
                 }
                 AD_PRELOAD.mark('rewarded', false);
+                // Ödüllü reklam kullanıcının kendi isteğiyle açılır; kapıdan
+                // ETKİLENMEZ ama sayacı sıfırlar -> hemen ardından interstitial gelmez.
+                AD_GATE.noteShown('rewarded');
                 setTimeout(() => { preloadAd('rewarded'); }, 1500); // sonrakini hazırla
                 const rewarded = !!result;
                 console.log(`📱 [ADMOB] Rewarded result:`, rewarded);
@@ -620,6 +624,46 @@ async function preloadAd(type) {
     }
 }
 window.preloadAd = preloadAd;
+
+/* =========================================================================
+ * ⏱️ REKLAM SIKLIK KAPISI (tek kaynak)
+ *
+ * ÖNCEKİ DURUM: iki ayrı interstitial yolu vardı ve birbirinden habersizdi:
+ *   1) Level tetikleyicisi -> AD_MEDIATION.showAdWithFallback (doğrudan)
+ *   2) adManager.showInterstitialAd (kendi 60sn kontrolü)
+ * lastInterstitialTime YALNIZCA (2)'de güncelleniyordu. Yani 60sn koruması
+ * gerçekte global değildi: level reklamından veya ÖDÜLLÜ reklamdan hemen
+ * sonra araya bir interstitial daha girebiliyordu (reklam üstüne reklam).
+ *
+ * ARTIK: her tam ekran reklam (ödüllü dahil) buraya kaydedilir ve tüm
+ * interstitial'lar tek kapıdan geçer. Ödüllü reklamlar kullanıcının kendi
+ * isteğiyle açıldığı için kapıdan ETKİLENMEZ, sadece sayacı sıfırlar.
+ * ========================================================================= */
+const AD_GATE = {
+    MIN_GAP_MS: 90 * 1000,   // iki tam ekran reklam arası en az 90 saniye
+    FIRST_AD_MIN_LEVEL: 3,   // ilk 2 level reklamsız (yeni oyuncu tanışma dönemi)
+    lastAdShownAt: 0,
+
+    // Herhangi bir tam ekran reklam gösterildiğinde çağrılır (ödüllü dahil)
+    noteShown(type) {
+        this.lastAdShownAt = Date.now();
+        console.log(`⏱️ [AD GATE] ${type} gösterildi -> sonraki interstitial için ${this.MIN_GAP_MS / 1000}sn bekleme`);
+    },
+
+    canShowInterstitial(reason) {
+        if (typeof currentLevel === 'number' && currentLevel < this.FIRST_AD_MIN_LEVEL) {
+            console.log(`⏭️ [AD GATE] Level ${currentLevel}: yeni oyuncu dönemi, interstitial yok (${reason})`);
+            return false;
+        }
+        const since = Date.now() - this.lastAdShownAt;
+        if (this.lastAdShownAt > 0 && since < this.MIN_GAP_MS) {
+            console.log(`⏭️ [AD GATE] Son reklamdan ${Math.round(since / 1000)}sn geçti (<${this.MIN_GAP_MS / 1000}sn), atlanıyor (${reason})`);
+            return false;
+        }
+        return true;
+    }
+};
+window.AD_GATE = AD_GATE;
 
 // AdMob Plugin Integration - Global Reference
 let AdMobPlugin = null;
@@ -4518,7 +4562,8 @@ function startNextLevelImmediate() {
     
     // 🎯 Interstitial Ad Logic - Her 2 levelde bir göster
     const interval = (ADMOB_CONFIG && ADMOB_CONFIG.settings && ADMOB_CONFIG.settings.interstitialInterval) ? ADMOB_CONFIG.settings.interstitialInterval : 2;
-    const shouldShowInterstitial = interval > 0 && (currentLevel % interval === 0);
+    const shouldShowInterstitial = interval > 0 && (currentLevel % interval === 0)
+        && AD_GATE.canShowInterstitial('level-' + currentLevel);
     
     if (shouldShowInterstitial && window.AD_MEDIATION) {
         console.log(`🎯 [INTERSTITIAL] Level ${currentLevel} - Showing interstitial ad...`);
@@ -11879,10 +11924,9 @@ class AdManager {
         
         // Minimum aralık kontrolü
         if (!ignoreInterval) {
-            const timeSinceLastAd = now - this.lastInterstitialTime;
-            if (timeSinceLastAd < this.minInterstitialInterval) {
-                const remainingTime = Math.ceil((this.minInterstitialInterval - timeSinceLastAd) / 1000);
-                debugLog('ads', `⏱️ Interstitial too soon - wait ${remainingTime}s more (policy-safe interval)`);
+            // Kendi lastInterstitialTime'ı yerine GLOBAL kapı: level yolundan
+            // veya ödüllü reklamdan gelen gösterimleri de sayar.
+            if (!AD_GATE.canShowInterstitial('adManager')) {
                 return false;
             }
         } else {
@@ -12098,13 +12142,10 @@ class AdManager {
 
     // App resume olayında App Open Ad göster
     async onAppResume() {
-        console.log('App resumed - checking for App Open Ad...');
-        const success = await this.showAppOpenAd();
-        if (success) {
-            console.log('✅ App resume\'da App Open Ad gösterildi');
-        } else {
-            console.log('❌ App resume\'da App Open Ad gösterilemedi veya çok erken');
-        }
+        // Öne gelişte artık REKLAM GÖSTERİLMİYOR (bkz. resume dinleyicisi).
+        // Metot, başka bir yerden çağrılma ihtimaline karşı etkisiz bırakıldı.
+        console.log('App resumed - reklam gösterilmiyor (politika: sadece doğal molalar)');
+        return false;
     }
 
 }
@@ -12169,8 +12210,14 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App
             console.error('❌ [RESUME] Canvas recovery failed:', err);
         }
         
-        // AdMob App-Open Ad
-        adManager.onAppResume();
+        // 🚫 ÖNE GELME REKLAMI KALDIRILDI.
+        // Bu dinleyici yalnızca reklamdan dönüşte değil; telefon geldiğinde,
+        // bildirime bakıp dönüldüğünde, uygulama ikinci kez açıldığında da
+        // tetikleniyor. Kullanıcı hiçbir şey yapmadan SADECE geri döndüğü için
+        // reklam görüyordu. Hem sadakat açısından en rahatsız edici nokta hem de
+        // AdMob'un "beklenmedik açılış reklamı" politika riski.
+        // Reklamlar artık yalnızca doğal molalarda (level geçişi) ve kullanıcının
+        // kendi isteğiyle (ödüllü) gösteriliyor.
     });
 }
 
