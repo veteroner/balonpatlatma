@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "609202148971",
+    "project_id": "popgo-1c34f",
+    "storage_bucket": "popgo-1c34f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:609202148971:android:30d4b95f147c758536832e",
+        "android_client_info": {
+          "package_name": "com.teknova.popgo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIIRg-zR5bu6WsI4XTAyVjKNuxiPnuvDs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      },
+      "admob_app_id": "ca-app-pub-7610338885240453~4318740068"
+    }
+  ],
+  "configuration_version": "1"
+}

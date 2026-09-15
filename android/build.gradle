@@ -1,0 +1,76 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+// Workaround: building on external macOS volumes can create AppleDouble files (._*) inside
+// Gradle/AGP intermediates, which can break resource parsing (e.g. '._drawable is not a directory').
+// Move build outputs to the system temp directory (internal disk) to avoid that.
+def _tmpBuildRoot = new File(System.getProperty('java.io.tmpdir'), 'popgo-android-build')
+allprojects { p ->
+    def safePath = (p.path == ':' ? 'root' : p.path.substring(1).replace(':', '/'))
+    p.buildDir = new File(_tmpBuildRoot, safePath)
+}
+
+buildscript {
+    
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.3'
+        classpath 'com.google.gms:google-services:4.4.2'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+
+            // macOS on external volumes can create AppleDouble files (._*) which break
+            // AGP resource parsing (e.g. ':app:parseDebugLocalResources' failing on '._drawable').
+            tasks.matching { it.name ==~ /^parse.*LocalResources$/ }.configureEach { t ->
+                t.doFirst {
+                    def intermediatesDir = project.file("${project.buildDir}/intermediates")
+                    if (intermediatesDir.exists()) {
+                        project.fileTree(intermediatesDir) {
+                            include '**/._*'
+                        }.files.each { f ->
+                            try { f.delete() } catch (ignored) {}
+                        }
+                    }
+                }
+            }
+        }
+
+        // Ensure all Kotlin compile tasks use the same JVM target as Java (17)
+        // This fixes: Inconsistent JVM-target compatibility between Java (17) and Kotlin (21)
+        tasks.configureEach { t ->
+            if (t.hasProperty('kotlinOptions')) {
+                t.kotlinOptions {
+                    jvmTarget = "17"
+                }
+            }
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

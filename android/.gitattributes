@@ -1,0 +1,10 @@
+# core.autocrlf=input is set for this repo; without these rules Git would strip
+# the CRLF that gradlew.bat needs to run on Windows.
+# See https://help.github.com/articles/dealing-with-line-endings/
+/gradlew        text eol=lf
+*.bat           text eol=crlf
+
+# Keep Git from touching binaries (wrapper jar, icons, splash screens).
+*.jar           binary
+*.png           binary
+*.dm            binary
