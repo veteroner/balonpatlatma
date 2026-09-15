@@ -1497,7 +1497,10 @@ const DEBUG_FLAGS = Object.freeze({
     gameplay: false,
     stats: false,
     haptics: false,
-    system: false
+    system: false,
+    // Ölçüm olaylarını konsola yazdırır (popgo-analytics.js). Üretimde kapalı;
+    // gerçek cihazda doğrulama için Firebase DebugView tercih edilir.
+    analytics: false
 });
 
 const ORIGINAL_CONSOLE = {
@@ -3905,6 +3908,10 @@ function startGame(freshStart = false) {
         currentLevel = 1;
         console.log('🔄 Fresh start: currentLevel = 1 olarak sıfırlandı');
     }
+
+    // 📊 Ölçüm (bkz. popgo-analytics.js)
+    window.__popgoLevelStartedAt = Date.now();
+    window.popgoTrack?.('game_start', { level: currentLevel, fresh_start: freshStart ? 1 : 0 });
     
     // End screen'i kesinlikle gizle
     try { forceHideEndScreen(); } catch(_) {}
@@ -4180,6 +4187,19 @@ function initializeNextLevel() {
 // Seviye geçiş ekranı
 function showLevelCompleteScreen() {
     gameState = 'levelcomplete';
+
+    // 📊 Ölçüm: bölüm hunisinin çıkışı. level_start ile birlikte hangi
+    // bölümde oyuncu kaybedildiğini gösterir.
+    const levelDurationSec = window.__popgoLevelStartedAt
+        ? Math.round((Date.now() - window.__popgoLevelStartedAt) / 1000)
+        : 0;
+    window.popgoTrack?.('level_complete', {
+        level: currentLevel,
+        score: score,
+        duration_sec: levelDurationSec
+    });
+    window.popgoSetUserProperty?.('max_level', currentLevel);
+    window.popgoMaybeAskForRating?.();
     
     // Seviye tamamlama ses efekti
     try {
@@ -4587,6 +4607,10 @@ function startNextLevelImmediate() {
     // Game loop'u yeniden başlat (eğer durmuşsa)
     requestAnimationFrame(gameLoop);
     debugLog('gameplay', '🎮 Yeni seviye başlatıldı - Level:', currentLevel);
+
+    // 📊 Ölçüm: bölüm hunisinin girişi
+    window.__popgoLevelStartedAt = Date.now();
+    window.popgoTrack?.('level_start', { level: currentLevel });
 }
 
 // Coin ödülü animasyonu
@@ -9941,6 +9965,14 @@ function showEndScreen(result) {
     // Oyun bittiğinde freeze efektini temizle
     freezeTimeLeft = 0;
     isSlowMotion = false;
+
+    // 📊 Ölçüm: kayıp anı. `result` bazı çağrılarda 'lose', bazılarında
+    // kullanıcıya gösterilen başlık metni; ham hâlini değil türünü gönderiyoruz.
+    window.popgoTrack?.('game_over', {
+        level: currentLevel,
+        score: score,
+        reason: result === 'lose' ? 'lose' : 'other'
+    });
     
     // Kayıtlı oyun durumu varsa devam et seçeneği sunma
     if (result === 'lose' && !savedGameState) {
@@ -11640,12 +11672,14 @@ class AdManager {
                         } else {
                             console.warn(`🔴 Interstitial failed to load: ${error?.message || 'unknown error'}`);
                         }
+                        window.popgoTrack?.('ad_interstitial_load_failed', { code: String(error?.code ?? 'unknown').slice(0, 100) });
                         this.failedInterstitialAttempts = Math.min(this.failedInterstitialAttempts + 1, 6);
                         this.interstitialBackoffMs = Math.min(120000, 15000 * Math.pow(2, this.failedInterstitialAttempts - 1));
                         this.queueInterstitialPrepare(this.interstitialBackoffMs);
                     });
                     AdMob.addListener('interstitialAdShowed', (info) => {
                         debugLog('ads', '🟢 Interstitial ad shown successfully:', info);
+                        window.popgoTrack?.('ad_interstitial_shown', { level: typeof currentLevel === 'number' ? currentLevel : 0 });
                     });
                     AdMob.addListener('interstitialAdDismissed', (info) => {
                         this.interstitialReady = false;
@@ -11678,6 +11712,7 @@ class AdManager {
                         debugLog('ads', '🟢 Rewarded video ad loaded successfully');
                     });
                     AdMob.addListener('onRewardedVideoAdFailedToLoad', (error) => {
+                        window.popgoTrack?.('ad_rewarded_load_failed', { code: String(error?.code ?? 'unknown').slice(0, 100) });
                         if (DEBUG_FLAGS.ads) {
                             console.error('🔴 Rewarded video failed to load:', error);
                         } else {
@@ -11686,9 +11721,11 @@ class AdManager {
                     });
                     AdMob.addListener('onRewardedVideoAdShowed', (info) => {
                         debugLog('ads', '🟢 Rewarded video ad shown successfully:', info);
+                        window.popgoTrack?.('ad_rewarded_shown', { level: typeof currentLevel === 'number' ? currentLevel : 0 });
                     });
                     AdMob.addListener('onRewardedVideoAdDismissed', (info) => {
                         debugLog('ads', '🟡 Rewarded video ad dismissed:', info);
+                        window.popgoTrack?.('ad_rewarded_dismissed', { level: typeof currentLevel === 'number' ? currentLevel : 0 });
                         console.log('🔧 [ADMOB] ========== VIEWPORT FIX TRIGGERED (onRewardedVideoAdDismissed) ==========');
 
                         // ✅ AGGRESSIVE FIX: Reklam sonrası viewport düzeltmesi
@@ -11704,6 +11741,7 @@ class AdManager {
                     });
                     AdMob.addListener('onRewardedVideoAdReward', (info) => {
                         debugLog('ads', '✅ Rewarded video ad completed:', info);
+                        window.popgoTrack?.('ad_rewarded_completed', { level: typeof currentLevel === 'number' ? currentLevel : 0 });
                     });
                     
                     console.log('✅ Event listeners registered successfully');

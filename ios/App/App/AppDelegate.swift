@@ -4,6 +4,7 @@ import AppTrackingTransparency
 import AdSupport
 import GoogleMobileAds
 import WebKit
+import FirebaseCore
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -12,6 +13,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        // 📊 Firebase — her şeyden önce yapılandırılmalı. Bu çağrı olmadan
+        // Analytics olayları (first_open dahil) hiç gönderilmez ve Google Ads
+        // kampanyası kurulumları ilişkilendiremez.
+        // GoogleService-Info.plist App hedefinde "Copy Bundle Resources" içinde olmalı.
+        FirebaseApp.configure()
+        print("✅ FirebaseApp.configure() çağrıldı")
+
         
         // ⚡️ CRITICAL: WKWebView Performance Optimizations for Gaming
         configureWebViewForPerformance()
