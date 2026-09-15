@@ -15,11 +15,12 @@ const SRC_W = 1320, SRC_H = 2868;
 
 const FRAMES = [
     { file: '01-oynanis.png', title: 'Eşleştir, patlat,\nbölümü temizle', sub: 'Tek dokunuşla oynanır' },
-    { file: '03-ates.png',    title: 'Ateş topu\nyolunu açar',           sub: 'Sıkıştığın bölümü aç' },
-    { file: '04-bomba.png',   title: 'Bomba tüm bölgeyi\ntemizler',      sub: 'Doğru gücü doğru anda kullan' },
-    { file: '02-aksiyon.png', title: 'İnternetsiz de\noynanır',           sub: 'Metroda, uçakta, her yerde' },
-    { file: '05-menu.png',    title: 'Üç oyun modu',                     sub: 'Klasik · Strateji · Arcade' },
-    { type: 'powers',         title: 'Altı farklı güç\nsenin elinde',    sub: '' },
+    { file: '03-bomba.png',   title: 'Bomba tüm bölgeyi\ntemizler',       sub: 'Doğru gücü doğru anda kullan' },
+    { file: '02-ates.png',    title: 'Ateş topu\nyolunu açar',            sub: 'Sıkıştığın bölümü aç' },
+    { file: '05-harita.png',  title: 'Sonu olmayan\nbölümler',            sub: 'Her bölüm biraz daha zor' },
+    { file: '06-gunluk.png',  title: 'Her gün gir,\ngüç kazan',           sub: 'Yedi günlük ödül döngüsü' },
+    { file: '07-menu.png',    title: 'Üç oyun modu',                      sub: 'Klasik · Strateji · Arcade' },
+    { type: 'powers',         title: 'Altı farklı güç\nsenin elinde',     sub: 'Her biri bölümü farklı açar' },
 ];
 
 const SIZES = [
@@ -116,11 +117,13 @@ async function powersPanel(width) {
                 const list = await textImg(names, Math.round(size.subSize * 1.55), '#E8EDFF', Math.round(size.w * 0.92));
 
                 // Çubuk + liste tek blok olarak, başlığın altındaki alanda dikey ortalanır.
-                const gap = Math.round(size.h * 0.07);
+                const gap = Math.round(size.h * 0.045);
                 const groupH = panel.h + gap + list.info.height;
                 const areaTop = contentTop + Math.round(size.h * 0.03);
                 const areaBottom = size.h - Math.round(size.h * 0.06);
-                const top = areaTop + Math.max(0, Math.round((areaBottom - areaTop - groupH) / 2));
+                // Tam ortalamak başlığın altında büyük bir boşluk bırakıyordu; blok
+                // yukarı yaslanır ki diğer karelerin ekran görüntüsü hizasına yaklaşsın.
+                const top = areaTop + Math.max(0, Math.round((areaBottom - areaTop - groupH) * 0.28));
 
                 layers.push({ input: panel.buf, top, left: Math.round((size.w - panelW) / 2) });
                 layers.push({ input: list.data, top: top + panel.h + gap, left: Math.round((size.w - list.info.width) / 2) });
