@@ -3118,8 +3118,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (restartButton) {
-        restartButton.addEventListener('click', () => {
-            if (confirm('Oyunu yeniden başlatmak istediğinizden emin misiniz?')) {
+        restartButton.addEventListener('click', async () => {
+            const onaylandi = await askConfirm({
+                icon: '🔄',
+                title: 'Yeniden Başlat',
+                message: 'Mevcut oyun sıfırlanacak. Yeniden başlatmak istediğinize emin misiniz?',
+                cancelText: 'Vazgeç',
+                okText: 'Yeniden Başlat'
+            });
+            if (onaylandi) {
                 console.log('🔄 Oyun yeniden başlatılıyor');
                 testVibration([80]); // Yeniden başlatma titreşimi
                 startGame(true); // user confirmed restart from menu -> treat as fresh start
@@ -3141,8 +3148,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Çıkış butonu
     if (exitGameBtn) {
-        exitGameBtn.addEventListener('click', () => {
-            if (confirm('Oyundan çıkmak istediğinizden emin misiniz?')) {
+        exitGameBtn.addEventListener('click', async () => {
+            const onaylandi = await askConfirm({
+                icon: '🚪',
+                title: 'Oyundan Çık',
+                message: 'Oyundan çıkmak istediğinize emin misiniz? Mevcut oyun sıfırlanır, seviye ilerlemeniz korunur.',
+                cancelText: 'Vazgeç',
+                okText: 'Çık'
+            });
+            if (onaylandi) {
                 console.log('🚪 Oyundan çıkılıyor');
                 testVibration([100, 50, 100]); // Güçlü çıkış titreşimi
                 
@@ -3180,6 +3194,17 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🎉 Hamburger menü kurulumu tamamlandı');
 });
 
+// --- ONAY KUTUSU ---
+// index.html'deki #cfmOverlay modal'ını kullanır (native confirm() yerine:
+// düğmeleri İngilizce "Cancel/Ok" geliyordu ve pencere oyunun görsel diline
+// uymuyordu). Modal herhangi bir sebeple yüklenmemişse native confirm'e düşer.
+function askConfirm(opts) {
+    if (typeof window.showConfirm === 'function') {
+        return window.showConfirm(opts);
+    }
+    return Promise.resolve(confirm(opts.message || opts.title || 'Emin misiniz?'));
+}
+
 // Nasıl oynanır fonksiyonu
 // NOT: showHowToPlay() burada tanımlanmıyor artık — index.html'deki inline
 // script (bkz. "NASIL OYNANIR: çirkin alert() yerine stilli modal" bloğu)
@@ -3197,8 +3222,15 @@ exportDataButton?.addEventListener('click', () => {
     exportPlayerData();
 });
 
-resetDataButton?.addEventListener('click', () => {
-    if (confirm('Tüm ilerleme verileri silinecek. Emin misiniz?')) {
+resetDataButton?.addEventListener('click', async () => {
+    const onaylandi = await askConfirm({
+        icon: '⚠️',
+        title: 'Verileri Sıfırla',
+        message: 'Tüm ilerleme verileri silinecek. Bu işlem geri alınamaz.',
+        cancelText: 'Vazgeç',
+        okText: 'Sil'
+    });
+    if (onaylandi) {
         resetPlayerData();
         if (statsModal) statsModal.style.display = 'none';
     }
@@ -4234,7 +4266,7 @@ function showNewLevelCompleteModal() {
     overlay.innerHTML = `
         <div class="level-complete-modal-new">
             <div class="celebration-header">
-                <h1 class="level-title-new">LEVEL ${completedLevel} COMPLETED!</h1>
+                <h1 class="level-title-new">SEVİYE ${completedLevel} TAMAMLANDI!</h1>
                 <button class="close-btn-new" onclick="closeLevelCompleteModal()">×</button>
             </div>
             
@@ -4245,7 +4277,7 @@ function showNewLevelCompleteModal() {
             </div>
             
             <div class="score-section">
-                <div class="score-label-new">FINAL SCORE</div>
+                <div class="score-label-new">TOPLAM SKOR</div>
                 <div class="score-value-new">
                     <span class="score-icon">⚡</span>
                     <span class="score-text">${formattedScore}</span>
@@ -4289,14 +4321,14 @@ function showNewLevelCompleteModal() {
                         </svg>
                         <div class="chest-glow"></div>
                     </div>
-                    <div class="chest-label">TAP TO OPEN!</div>
+                    <div class="chest-label">AÇMAK İÇİN DOKUN!</div>
                 </div>
             </div>
             
             <div class="action-buttons">
                 <button class="next-level-btn" onclick="goToNextLevel()">
                     <span class="btn-icon">▶</span>
-                    <span class="btn-text">NEXT LEVEL</span>
+                    <span class="btn-text">SONRAKİ SEVİYE</span>
                 </button>
             </div>
         </div>
@@ -4386,12 +4418,12 @@ function showChestReward(chestElement) {
     hasClaimedChestReward = true;
 
     const iconMap = {
-        bomb: '💣 Bomb',
+        bomb: '💣 Bomba',
         laser: '🔵 Yatay Lazer',
         verticalLaser: '⚡ Dikey Lazer',
-        fireball: '🔥 Fireball',
-        freeze: '❄️ Freeze',
-        rainbow: '🌈 Rainbow'
+        fireball: '🔥 Ateş Topu',
+        freeze: '❄️ Dondurucu',
+        rainbow: '🌈 Gökkuşağı'
     };
     const reward = iconMap[type] + ' +1';
     
@@ -4680,7 +4712,7 @@ function showDailyBonusScreen() {
                     <span class="bubble red">🔴</span>
                     <span class="bubble yellow">🟡</span>
                 </div>
-                <div class="progress-text">Pop 200 bubbles!</div>
+                <div class="progress-text">200 balon patlat!</div>
                 <div class="progress-reward">💰</div>
             </div>
             
@@ -4741,10 +4773,10 @@ function generateDailyRewardsHTML(data, includeDay7 = false) {
         
         if (isToday && !data.claimedToday) {
             dayClass += ' today';
-            dayLabel = 'Today';
+            dayLabel = 'BUGÜN';
         } else {
             dayClass += ' normal';
-            dayLabel = `Day ${dayNum}`;
+            dayLabel = `${dayNum}. GÜN`;
         }
         
         if (isClaimed) {
@@ -4770,11 +4802,11 @@ function generateDay7HTML(data) {
     const isClaimed = data.currentDay > 7 || (isToday && data.claimedToday);
     
     let dayClass = 'daily-day7-item';
-    let dayLabel = 'Day 7';
+    let dayLabel = '7. GÜN';
     
     if (isToday && !data.claimedToday) {
         dayClass += ' today';
-        dayLabel = 'Today';
+        dayLabel = 'BUGÜN';
     }
     
     if (isClaimed) {
@@ -5253,7 +5285,7 @@ function showLevelSelectionScreen() {
             <div class="top-bar-selection">
                 <div class="lives-display">
                     <span class="lives-icon">❤️</span>
-                    <span class="lives-text">${data.livesRemaining}</span>
+                    <span class="lives-text">${data.livesRemaining === 'unlimited' ? 'SINIRSIZ' : data.livesRemaining}</span>
                 </div>
                 <div class="coins-display">
                     <span class="coins-icon">💰</span>
@@ -5269,7 +5301,7 @@ function showLevelSelectionScreen() {
                         <span class="bubble-icon">🔴</span>
                         <span class="bubble-icon">🟡</span>
                     </div>
-                    <div class="progress-text">Pop 200 bubbles!</div>
+                    <div class="progress-text">200 balon patlat!</div>
                     <div class="progress-reward">
                         <span class="reward-icon">💰</span>
                     </div>
@@ -5290,11 +5322,11 @@ function showLevelSelectionScreen() {
             <div class="left-sidebar">
                 <button class="sidebar-btn shop-btn" onclick="showShopModal()">
                     <div class="btn-icon">🛒</div>
-                    <div class="btn-label">SHOP</div>
+                    <div class="btn-label">MAĞAZA</div>
                 </button>
                 <button class="sidebar-btn map-btn" onclick="showMapModal()">
                     <div class="btn-icon">🗺️</div>
-                    <div class="btn-label">MAP</div>
+                    <div class="btn-label">HARİTA</div>
                 </button>
                 <button class="sidebar-btn daily-btn" onclick="showDailyBonusScreen()">
                     <div class="btn-icon">🎁</div>
@@ -5321,7 +5353,7 @@ function showLevelSelectionScreen() {
             <!-- Alt Butonlar -->
             <div class="bottom-actions">
                 <button class="play-button" onclick="startSelectedLevel()">
-                    <span>Level ${currentLevel || 1}</span>
+                    <span>Seviye ${currentLevel || 1}</span>
                 </button>
                 <button class="close-selection-btn" onclick="closeLevelSelectionModal()">
                     <span>×</span>
@@ -5381,7 +5413,7 @@ function generateLevelPath(maxLevel) {
                 <div class="${buttonClass}">
                     <div class="level-number">${i}</div>
                     ${isCompleted ? '<div class="level-stars">⭐⭐⭐</div>' : ''}
-                    ${isCurrent ? '<div class="level-badge">CURRENT</div>' : ''}
+                    ${isCurrent ? '<div class="level-badge">MEVCUT</div>' : ''}
                     ${!isUnlocked ? '<div class="level-lock">🔒</div>' : ''}
                 </div>
                 ${i < totalLevels ? '<div class="level-connector"></div>' : ''}
@@ -5415,7 +5447,7 @@ function selectLevel(levelNum) {
     // Play button'u güncelle
     const playButton = document.querySelector('.play-button');
     if (playButton) {
-        playButton.innerHTML = `<span>Level ${levelNum}</span>`;
+        playButton.innerHTML = `<span>Seviye ${levelNum}</span>`;
     }
 }
 
@@ -5882,7 +5914,7 @@ function gameLoop(currentTime = 0) {
 function updateHudDom() {
     const lvl = document.getElementById('hudLevel');
     if (lvl) {
-        const t = 'LEVEL ' + currentLevel;
+        const t = 'SEVİYE ' + currentLevel;
         if (lvl.textContent !== t) lvl.textContent = t;
     }
 
@@ -7611,7 +7643,7 @@ function drawBottomUI() {
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText('STREAK', animatedThermoCenterX, animatedTubeTopY - 3);
+    ctx.fillText('SERİ', animatedThermoCenterX, animatedTubeTopY - 3);
 
     // Combo yazısı - küçük ama okunabilir
     ctx.font = 'bold 18px Arial'; // Küçük combo
@@ -10736,7 +10768,7 @@ function getPowerBallName(type) {
         freeze: 'Dondurucu', 
         rainbow: 'Gökkuşağı' 
     };
-    return names[type] || 'Power Ball';
+    return names[type] || 'Güç Topu';
 }
 
 // Global olarak erişilebilir yap
