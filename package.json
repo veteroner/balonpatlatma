@@ -21,6 +21,8 @@
   "license": "ISC",
   "dependencies": {
     "@capacitor-community/admob": "^8.0.0",
+    "@capacitor-community/in-app-review": "^7.1.0",
+    "@capacitor-firebase/analytics": "^7.5.0",
     "@capacitor/android": "^7.4.3",
     "@capacitor/app": "^7.1.0",
     "@capacitor/cli": "^7.4.3",

@@ -17,6 +17,8 @@ def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCommunityAdmob', :path => '../../node_modules/@capacitor-community/admob'
+  pod 'CapacitorCommunityInAppReview', :path => '../../node_modules/@capacitor-community/in-app-review'
+  pod 'CapacitorFirebaseAnalytics', :path => '../../node_modules/@capacitor-firebase/analytics'
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorDevice', :path => '../../node_modules/@capacitor/device'
   pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
@@ -32,6 +34,15 @@ target 'App' do
   # ⚡️ PERFORMANCE FIX: Force update AdMob SDK to match Android version (23.x)
   # NOTE: @capacitor-community/admob@8.x requires Google-Mobile-Ads-SDK (~> 12.14)
   pod 'Google-Mobile-Ads-SDK', '~> 12.14'
+
+  # 📊 Firebase Analytics — @capacitor-firebase/analytics'in VARSAYILAN subspec'i
+  # 'Lite' ve FirebaseAnalytics SDK'sini İÇERMEZ. Bu satır olmadan eklenti derlenir
+  # ama hiçbir olay gönderilmez ve AppDelegate'teki `import FirebaseCore` çöker.
+  # 'Analytics' subspec'i reklam kimliği (IDFA) desteğiyle gelir; Google Ads
+  # kurulum ilişkilendirmesi için istediğimiz de bu.
+  # NOT: cap sync, yukarıdaki capacitor_pods bloğunu her seferinde yeniden üretir;
+  # bu yüzden subspec burada, elle bakılan bölümde duruyor.
+  pod 'CapacitorFirebaseAnalytics/Analytics', :path => '../../node_modules/@capacitor-firebase/analytics'
 end
 
 post_install do |installer|
