@@ -401,8 +401,11 @@
 
     <!-- chroma-js kaldırıldı: kodda hiç kullanılmıyordu (açılış ağ bağımlılığı azaltıldı) -->
     <script src="splash-screen.js"></script>
-    <!-- Ölçüm: app.js'ten ÖNCE yüklenmeli, ilk olaylar kaybolmasın -->
+    <!-- Ölçüm: app.js'ten ÖNCE yüklenmeli, ilk olaylar kaybolmasın.
+         Crashlytics de app.js'ten önce gelir ki hata yakalayıcıları oyun
+         kodu çalışmaya başlamadan kurulmuş olsun. -->
     <script src="popgo-analytics.js"></script>
+    <script src="popgo-crashlytics.js"></script>
     <script src="popgo-rating.js"></script>
     <script src="app.js"></script>
 
