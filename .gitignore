@@ -5,3 +5,10 @@
 www/www/
 www/android/
 www/node_modules/
+
+# Bağımlılıklar (npm install ile gelir, git'te tutulmaz)
+node_modules/
+
+# macOS çöp dosyaları (exFAT diskte her dosyanın yanına ._ yazılır)
+._*
+.DS_Store
