@@ -134,7 +134,7 @@
              temalanır ve canvas'ın BOTTOM_MARGIN matematiğine bağlı değil.
              Konumu power barın üstüne CSS ile sabitlenir. -->
         <div id="hudInfo" aria-live="polite">
-            <span id="hudLevel">LEVEL 1</span>
+            <span id="hudLevel">SEVİYE 1</span>
             <span id="hudScore">SKOR 0</span>
         </div>
 
@@ -287,16 +287,16 @@
                     </div>
 
                     <div class="menu-section">
-                        <h3>⚡ Güç-ups</h3>
+                        <h3>⚡ Güçler</h3>
                         <div class="powerups-grid">
                             <button class="powerup-btn" onclick="usePowerup('rainbow')">
                                 <span class="powerup-icon">🎯</span>
-                                <span class="powerup-name">Rainbow</span>
+                                <span class="powerup-name">Gökkuşağı</span>
                                 <span class="powerup-count" id="rainbowCount">0</span>
                             </button>
                             <button class="powerup-btn" onclick="usePowerup('fireball')">
                                 <span class="powerup-icon">🔥</span>
-                                <span class="powerup-name">Fireball</span>
+                                <span class="powerup-name">Ateş Topu</span>
                                 <span class="powerup-count" id="fireballCount">0</span>
                             </button>
                         </div>
@@ -401,6 +401,12 @@
 
     <!-- chroma-js kaldırıldı: kodda hiç kullanılmıyordu (açılış ağ bağımlılığı azaltıldı) -->
     <script src="splash-screen.js"></script>
+    <!-- Ölçüm: app.js'ten ÖNCE yüklenmeli, ilk olaylar kaybolmasın.
+         Crashlytics de app.js'ten önce gelir ki hata yakalayıcıları oyun
+         kodu çalışmaya başlamadan kurulmuş olsun. -->
+    <script src="popgo-analytics.js"></script>
+    <script src="popgo-crashlytics.js"></script>
+    <script src="popgo-rating.js"></script>
     <script src="app.js"></script>
 
     <script>
@@ -777,9 +783,9 @@
                     '<h3>Puanlama</h3><ul>'+
                       '<li>2 balon: <b>100</b> · 3 balon: <b>200</b> · 4+ balon: <b>300+</b></li>'+
                       '<li>Combo bonusları ekstra puan</li></ul>'+
-                    '<h3>Güç-up\'lar</h3><ul>'+
-                      '<li>🎯 <b>Rainbow</b> — her renkle eşleşir</li>'+
-                      '<li>🔥 <b>Fireball</b> — geniş alan hasarı</li>'+
+                    '<h3>Güçler</h3><ul>'+
+                      '<li>🌈 <b>Gökkuşağı</b> — her renkle eşleşir</li>'+
+                      '<li>🔥 <b>Ateş Topu</b> — geniş alan hasarı</li>'+
                       '<li>🔷 <b>Yatay lazer</b> — satırı temizler</li>'+
                       '<li>⚡ <b>Dikey lazer</b> — sütunu temizler</li></ul>'+
                     '<button class="htp-close" type="button">Anladım</button>'+
@@ -797,6 +803,89 @@
             document.addEventListener('DOMContentLoaded', patch);
             window.addEventListener('load', patch);
             window.__howToPlay = { show: show, hide: hide };
+        })();
+    </script>
+
+    <!-- ✅ ONAY KUTUSU: native confirm() yerine oyunun kendi modalı -->
+    <style>
+        #cfmOverlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;
+            opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+        #cfmOverlay.visible{opacity:1;visibility:visible;pointer-events:auto}
+        #cfmOverlay .cfm-backdrop{position:absolute;inset:0;background:rgba(4,6,16,.82);backdrop-filter:blur(6px)}
+        #cfmOverlay .cfm-card{position:relative;width:86%;max-width:360px;
+            background:linear-gradient(160deg,#111634,#0d1128);border:1px solid rgba(0,234,255,.28);border-radius:18px;
+            padding:26px 22px 22px;box-shadow:0 24px 60px rgba(0,0,0,.6);text-align:center;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#eaf2ff;
+            transform:scale(.94);transition:transform .2s ease}
+        #cfmOverlay.visible .cfm-card{transform:scale(1)}
+        #cfmOverlay .cfm-icon{font-size:38px;line-height:1;margin-bottom:12px}
+        #cfmOverlay .cfm-title{font-size:20px;font-weight:800;color:#fff;margin:0 0 8px;letter-spacing:.3px}
+        #cfmOverlay .cfm-msg{font-size:14px;line-height:1.55;color:#cfe0f5;margin:0 0 22px}
+        #cfmOverlay .cfm-actions{display:flex;gap:10px}
+        #cfmOverlay .cfm-btn{flex:1;padding:14px 10px;border:none;border-radius:12px;font-size:15px;font-weight:800;
+            cursor:pointer;font-family:inherit}
+        #cfmOverlay .cfm-cancel{background:rgba(255,255,255,.07);border:1px solid rgba(0,234,255,.28);color:#9fe9ff}
+        #cfmOverlay .cfm-ok{background:linear-gradient(180deg,#ff5c95,#ff3d7f);color:#fff;
+            box-shadow:0 8px 20px rgba(255,61,127,.34)}
+    </style>
+    <script>
+        (function(){
+            var pending = null;
+
+            function build(){
+                var o=document.getElementById('cfmOverlay'); if(o) return o;
+                o=document.createElement('div'); o.id='cfmOverlay';
+                o.setAttribute('role','dialog'); o.setAttribute('aria-modal','true');
+                o.setAttribute('aria-hidden','true');
+                o.innerHTML =
+                    '<div class="cfm-backdrop"></div>'+
+                    '<div class="cfm-card">'+
+                    '<div class="cfm-icon"></div>'+
+                    '<h2 class="cfm-title"></h2>'+
+                    '<p class="cfm-msg"></p>'+
+                    '<div class="cfm-actions">'+
+                      '<button class="cfm-btn cfm-cancel" type="button">Vazgeç</button>'+
+                      '<button class="cfm-btn cfm-ok" type="button">Tamam</button>'+
+                    '</div>'+
+                    '</div>';
+                document.body.appendChild(o);
+                o.querySelector('.cfm-backdrop').addEventListener('click', function(){ settle(false); });
+                o.querySelector('.cfm-cancel').addEventListener('click', function(){ settle(false); });
+                o.querySelector('.cfm-ok').addEventListener('click', function(){ settle(true); });
+                document.addEventListener('keydown', function(e){
+                    if(!pending) return;
+                    if(e.key==='Escape') settle(false);
+                    else if(e.key==='Enter') settle(true);
+                });
+                return o;
+            }
+
+            function settle(result){
+                var done = pending; pending = null;
+                var o=document.getElementById('cfmOverlay');
+                if(o){ o.classList.remove('visible'); o.setAttribute('aria-hidden','true'); }
+                if(done) done(result);
+            }
+
+            // showConfirm({title, message, icon, okText, cancelText}) -> Promise<boolean>
+            function showConfirm(opts){
+                opts = opts || {};
+                // Açık bir onay kutusu varsa onu iptal et, üst üste binmesin
+                if(pending) settle(false);
+                var o=build();
+                o.querySelector('.cfm-icon').textContent   = opts.icon || '❓';
+                o.querySelector('.cfm-title').textContent  = opts.title || 'Emin misiniz?';
+                o.querySelector('.cfm-msg').textContent    = opts.message || '';
+                o.querySelector('.cfm-cancel').textContent = opts.cancelText || 'Vazgeç';
+                o.querySelector('.cfm-ok').textContent     = opts.okText || 'Tamam';
+                o.setAttribute('aria-label', opts.title || 'Onay');
+                o.classList.add('visible'); o.setAttribute('aria-hidden','false');
+                // Yıkıcı işlemlerde odak önce "Vazgeç"te olsun
+                try { o.querySelector('.cfm-cancel').focus(); } catch(_) {}
+                return new Promise(function(resolve){ pending = resolve; });
+            }
+
+            window.showConfirm = showConfirm;
         })();
     </script>
 

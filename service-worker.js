@@ -7,7 +7,7 @@
  */
 
 // Sürümü her yayında artır (eski cache'leri otomatik temizler)
-const CACHE_NAME = 'popgo-cache-v5';
+const CACHE_NAME = 'popgo-cache-v6';
 
 const CORE_ASSETS = [
   '.',
@@ -16,6 +16,8 @@ const CORE_ASSETS = [
   'redesign.css',
   'splash-screen.css',
   'splash-screen.js',
+  'popgo-analytics.js',
+  'popgo-rating.js',
   'app.js',
 ];
 
