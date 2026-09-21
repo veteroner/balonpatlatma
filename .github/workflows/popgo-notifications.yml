@@ -1,0 +1,80 @@
+name: PopGo Notifications
+
+# Firebase Cloud Scheduler (Blaze planı) yerine GitHub Actions cron —
+# Bilgoo ve Novalingo ile aynı sistem. FCM gönderimi Spark planında ücretsizdir.
+# Mantık: .github/scripts/send-popgo-notifications.mjs
+# Kurulum: POPGO_BILDIRIM_KURULUMU.md
+#
+# Not: GitHub zamanlanmış işleri yoğunlukta birkaç dakika geciktirebilir ve
+# depoda 60 gün hiç commit olmazsa cron'u otomatik durdurur (Actions
+# sekmesinden tek tıkla yeniden açılır).
+
+on:
+  schedule:
+    # 13:00 TR (UTC+3) — öğle arası
+    - cron: '0 10 * * *'
+    # 20:00 TR — akşam
+    - cron: '0 17 * * *'
+
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'Hangi bildirim'
+        required: true
+        default: 'evening'
+        type: choice
+        options:
+          - noon
+          - evening
+      dry_run:
+        description: 'Gerçekten gönderme, sadece logla'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  notify:
+    name: Send scheduled notification
+    runs-on: ubuntu-latest
+    # Secret, GitHub'da "FIREBASE_SERVICE_ACCOUNT" adlı bir Environment'ın
+    # içinde tanımlı. Environment secret'ları yalnızca bu ortamı adıyla
+    # belirten job'lara açılır.
+    environment: FIREBASE_SERVICE_ACCOUNT
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # firebase-admin depo kökünden bağımsız bir klasöre kurulur: kökteki
+      # package.json uygulamanın Capacitor bağımlılıklarını taşıyor, gönderici
+      # yalnızca firebase-admin'e ihtiyaç duyuyor (Novalingo'daki ERESOLVE dersi).
+      - name: Install firebase-admin (isolated)
+        run: |
+          mkdir -p "$RUNNER_TEMP/notify"
+          cp .github/scripts/send-popgo-notifications.mjs "$RUNNER_TEMP/notify/"
+          cd "$RUNNER_TEMP/notify"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund firebase-admin@13
+
+      - name: Resolve slot from schedule
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "slot=${{ inputs.slot }}" >> "$GITHUB_OUTPUT"
+            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            case "${{ github.event.schedule }}" in
+              "0 10 * * *") echo "slot=noon"    >> "$GITHUB_OUTPUT" ;;
+              *)            echo "slot=evening" >> "$GITHUB_OUTPUT" ;;
+            esac
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send notification
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SLOT: ${{ steps.resolve.outputs.slot }}
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+        run: node "$RUNNER_TEMP/notify/send-popgo-notifications.mjs"

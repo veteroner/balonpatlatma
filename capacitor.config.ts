@@ -30,6 +30,11 @@ const config: CapacitorConfig = {
     },
     Haptics: {},
     App: {},
+    // 🔔 Günlük hatırlatmalar (popgo-push.js). Uygulama açıkken gelen bildirim
+    // de gösterilsin; aksi hâlde iOS ön plandaki bildirimi sessizce yutar.
+    FirebaseMessaging: {
+      presentationOptions: ['alert', 'sound']
+    },
     AdMob: {
       applicationId: 'ca-app-pub-7610338885240453~1290039433', // iOS App ID
       androidApplicationId: 'ca-app-pub-7610338885240453~4318740068', // YENİ Android App ID

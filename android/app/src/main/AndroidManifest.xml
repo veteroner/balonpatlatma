@@ -16,6 +16,18 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-7610338885240453~4318740068"/>
 
+        <!-- 🔔 Günlük hatırlatmalar (popgo-push.js): uygulama kapalıyken gelen
+             bildirimin ikonu, rengi ve kanalı. Kanal JS tarafında oluşturuluyor. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_popgo"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/popgo_notification"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="popgo_reminders"/>
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
             android:name="com.teknova.popgo.MainActivity"

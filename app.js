@@ -4232,6 +4232,7 @@ function showLevelCompleteScreen() {
     });
     window.popgoSetUserProperty?.('max_level', currentLevel);
     window.popgoMaybeAskForRating?.();
+    window.popgoMaybeAskForPush?.();
     
     // Seviye tamamlama ses efekti
     try {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bildirim çubuğu ikonu: tek renkli balon silueti. Android durum çubuğu
+     ikonları yalnızca alfa kanalını kullanır; renkli uygulama ikonu burada
+     beyaz bir kare olarak görünürdü. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2C8.13,2 5,5.13 5,9c0,3.9 3.1,7.2 6,8.3L10.5,19h3L13,17.3c2.9,-1.1 6,-4.4 6,-8.3C19,5.13 15.87,2 12,2z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11.25,19.5h1.5v2.5h-1.5z" />
+</vector>

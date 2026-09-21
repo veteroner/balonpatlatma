@@ -31,6 +31,11 @@
 	</dict>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Bu uygulama size daha iyi reklamlar gösterebilmek için izleme yapmak istiyor.</string>
+	<!-- 🔔 Günlük hatırlatmalar (popgo-push.js) -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIRequiredDeviceCapabilities</key>

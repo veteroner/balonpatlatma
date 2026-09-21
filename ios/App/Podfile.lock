@@ -24,6 +24,9 @@ PODS:
   - CapacitorFirebaseCrashlytics (7.5.0):
     - Capacitor
     - FirebaseCrashlytics (~> 11.7.0)
+  - CapacitorFirebaseMessaging (7.5.0):
+    - Capacitor
+    - FirebaseMessaging (~> 11.7.0)
   - CapacitorHaptics (7.0.2):
     - Capacitor
   - CapacitorNetwork (7.0.2):
@@ -72,6 +75,15 @@ PODS:
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (11.7.0):
+    - FirebaseCore (~> 11.7.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleDataTransport (~> 10.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Reachability (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
   - FirebaseRemoteConfigInterop (11.15.0)
   - FirebaseSessions (11.7.0):
     - FirebaseCore (~> 11.7.0)
@@ -155,6 +167,7 @@ DEPENDENCIES:
   - "CapacitorFirebaseAnalytics (from `../../node_modules/@capacitor-firebase/analytics`)"
   - "CapacitorFirebaseAnalytics/Analytics (from `../../node_modules/@capacitor-firebase/analytics`)"
   - "CapacitorFirebaseCrashlytics (from `../../node_modules/@capacitor-firebase/crashlytics`)"
+  - "CapacitorFirebaseMessaging (from `../../node_modules/@capacitor-firebase/messaging`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
@@ -169,6 +182,7 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseCrashlytics
     - FirebaseInstallations
+    - FirebaseMessaging
     - FirebaseRemoteConfigInterop
     - FirebaseSessions
     - Google-Mobile-Ads-SDK
@@ -198,6 +212,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor-firebase/analytics"
   CapacitorFirebaseCrashlytics:
     :path: "../../node_modules/@capacitor-firebase/crashlytics"
+  CapacitorFirebaseMessaging:
+    :path: "../../node_modules/@capacitor-firebase/messaging"
   CapacitorHaptics:
     :path: "../../node_modules/@capacitor/haptics"
   CapacitorNetwork:
@@ -216,6 +232,7 @@ SPEC CHECKSUMS:
   CapacitorDevice: 81ae78d5d1942707caad79276badd458bf6ec603
   CapacitorFirebaseAnalytics: 27ad621b8f41c2cd2b2169f2db6f476cdac49011
   CapacitorFirebaseCrashlytics: 50fb67e9c1955c49132164e02c8c5164ad811473
+  CapacitorFirebaseMessaging: 1ac12c0dab16d1e4edcf9cb878620507ac868a4e
   CapacitorHaptics: b3fb2869e72c4466e18ce9ccbeb60a3d8723b3d4
   CapacitorNetwork: 695069886b3c5ed514db69aa3d026b8dc3c03a6b
   CapacitorSplashScreen: e388b8e0ed0e982a9d3a40417f478e7a018a8763
@@ -226,6 +243,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: d6c17dafc8dc33614733a8b52df78fcb4394c881
   FirebaseCrashlytics: 785a73b624715bbc09a40bb56cdc3829a801cc98
   FirebaseInstallations: 9347e719c3d52d8d7b9074b2c32407dd027305e9
+  FirebaseMessaging: 00ece041b71ddb52a2862ffdee73fb6e9824bd0c
   FirebaseRemoteConfigInterop: 1c6135e8a094cc6368949f5faeeca7ee8948b8aa
   FirebaseSessions: 32ed7a9387ae71efe3a35a7f20f3a7292950957b
   Google-Mobile-Ads-SDK: 4534fd2dfcd3f705c5485a6633c5188d03d4eed2
@@ -238,6 +256,6 @@ SPEC CHECKSUMS:
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
 
-PODFILE CHECKSUM: 2a476d6f21976e2e6a39db2bcfc2e97d284afbe9
+PODFILE CHECKSUM: b064716522adbad5646a03d213add301b2e6bac9
 
 COCOAPODS: 1.16.2
