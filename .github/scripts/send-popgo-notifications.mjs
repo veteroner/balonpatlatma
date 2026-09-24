@@ -70,7 +70,26 @@ async function main() {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
     if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT tanımlı değil (GitHub Environment secret).');
 
-    initializeApp({ credential: cert(JSON.parse(raw)) });
+    // Yanlış dosya yapıştırıldığında hata "project_id yok" deyip susuyor.
+    // Teşhis için yalnızca ALAN ADLARINI yazdırıyoruz; değerler asla loglanmaz.
+    let account;
+    try {
+        account = JSON.parse(raw);
+    } catch (_) {
+        throw new Error(
+            `Secret geçerli JSON değil (${raw.length} karakter, ` +
+            `"{" ile başlıyor mu: ${raw.trimStart().startsWith('{')}). ` +
+            'Firebase → Project settings → Service accounts → Generate new private key ile inen dosyanın TÜM içeriği yapıştırılmalı.'
+        );
+    }
+    if (!account.project_id || account.type !== 'service_account') {
+        throw new Error(
+            `Secret bir hizmet hesabı anahtarı değil. Bulunan alanlar: ${Object.keys(account).join(', ')}. ` +
+            'Beklenen: type=service_account, project_id, private_key, client_email.'
+        );
+    }
+
+    initializeApp({ credential: cert(account) });
     const id = await getMessaging().send(message);
     console.log(`Gönderildi: ${id}`);
 }
