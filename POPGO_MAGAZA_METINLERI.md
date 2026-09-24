@@ -62,10 +62,12 @@ Balonları patlatmaya başla — ilk bölümler reklamsız.
 
 ### Yenilikler / sürüm notu (maks. 500)
 ```
-• Reklamlar seyreltildi: ilk iki bölüm tamamen reklamsız, uygulama açılışında artık reklam yok
-• Bölüm ekranı artık her cihazda simetrik; çentikli ekranlarda üst kısım kesilmiyor
+• Arayüz tamamen Türkçe
+• Günlük hatırlatma: istersen her gün kısa bir hatırlatma gönderiyoruz, izin senin kontrolünde
+• Reklamlar seyreltildi: ilk iki bölüm tamamen reklamsız, uygulama açılışında reklam yok
+• Bölüm ekranı her cihazda simetrik; çentikli ekranlarda üst kısım kesilmiyor
 • Reklam sonrası arayüz kaymaları giderildi
-• Performans iyileştirmeleri
+• Çökme takibi eklendi, kararlılık iyileştirmeleri
 ```
 
 ### Görseller
@@ -151,7 +153,7 @@ node generate_store_screenshots.js <ham-kareler-klasörü> store-assets
 | Play — Uygulama adı | 27 / 30 | ✓ |
 | Play — Kısa açıklama | 77 / 80 | ✓ |
 | Play — Tam açıklama | 1401 / 4000 | ✓ |
-| Play — Yenilikler | 251 / 500 | ✓ |
+| Play — Yenilikler | 380 / 500 | ✓ |
 | App Store — Uygulama adı | 21 / 30 | ✓ |
 | App Store — Alt başlık | 29 / 30 | ✓ |
 | App Store — Anahtar kelimeler | 97 / 100 | ✓ |
